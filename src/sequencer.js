@@ -18,6 +18,7 @@ function isSelected ({voice, start, end}, xVoice, xTime) {
 
 module.exports = emit => ({
     state: {
+        mode: 'editing',
         times: [...Array(NUM_TIMES).keys()].map(_ => [...Array(8).keys()].map(_ => null)),
         selection: {
             selecting: false,
@@ -32,35 +33,52 @@ module.exports = emit => ({
             time: -1,
         }
     },
+
     actions: {
-        startSelecting (state, actions, [time, voice]) {
-            state.selection.selecting = true
-            state.selection.start = time
-            state.selection.voice = voice
-            emit('sequencer:selectVoice', voice)
-            state.selection.end = time
-            return state
-        },
-        setSelection (state, actions, time) {
-            if (state.selection.selecting) {
+
+        selection: {
+            reset: (state, actions) => {
+                state.selection.selecting = false
+                state.selection.start = -1
+                state.selection.end = -1
+                state.selection.voice = -1
+                return state
+            },
+
+            start: (state, actions, [time, voice]) => {
+                if (state.mode !== 'editing') return
+                console.log('START SELECTING')
+                state.selection.selecting = true
+                state.selection.start = time
+                state.selection.voice = voice
+                emit('sequencer:selectVoice', voice)
                 state.selection.end = time
                 return state
+            },
+
+            stop: (state, actions, time) => {
+                state.selection.selecting = false;
+                return state
+            },
+
+            set: (state, actions, time) => {
+                if (state.selection.selecting) {
+                    state.selection.end = time
+                    return state
+                }
+            },
+
+            note: (state, actions, note) => update => {
+                console.log('SET NOTE', state.selection.selecting, note)
+                if (!state.selection.selecting) return
+                const {start, end, voice} = state.selection
+                const [from, to] = start < end ? [start, end] : [end, start] 
+                for (var i = from; i <= to; i++) {
+                    state.times[i][voice] = note
+                }
+                update(state)
+                actions.selection.reset()
             }
-        },
-        stopSelecting (state, actions, time) {
-            state.selection.selecting = false;
-            return state
-        },
-        setNote (state, actions, note) {
-            if (state.selection.start === -1) return
-            const {start, end, voice} = state.selection
-            const [from, to] = start < end ? [start, end] : [end, start] 
-            for (var i = from; i <= to; i++) {
-                state.times[i][voice] = note
-            }
-            state.selection.start = -1
-            state.selection.end = -1
-            return state
         },
         _setRecordedNote (state, actions) {
             if (state.playing.record && state.playing.recordNote !== null) {
@@ -130,22 +148,19 @@ module.exports = emit => ({
     },
     events:  {
         'load': (state, actions) => {
-            window.addEventListener('mouseup', actions.stopSelecting),
+            window.addEventListener('mouseup', ev => actions.selection.stop())
             window.addEventListener('keydown', ev => {
-                if (ev.keyCode === 32) actions.setNote(null)
+                if (ev.keyCode === 32) actions.note(null)
             })
         },
-        'keyboard:attackNote': [
-            (state, actions, note) => {
-                actions.setNote(note)
-                return note
-            },
-            (state, actions, note) => {
-                actions.recordAttackNote(note)
-                return note
+        'input:attackNote':  (state, actions, note) => {
+            console.log('INPUT ATTACK', note, state.mode, state.selection.selecting)
+            if (state.mode === 'editing') {
+                actions.selection.note(note)
             }
-        ],
-        'keyboard:releaseNote':  [
+            return note
+        },
+        'input:releaseNote':  [
             (state, actions, note) => actions.recordReleaseNote(note)
         ],
         'persist:getNotes': (state, actions) => state.times,
@@ -154,7 +169,7 @@ module.exports = emit => ({
 
     views: {
 
-        sequencer: (state, actions) => html`
+        grid: (state, actions) => html`
             <table class="sequencer">
                 ${state.times.map((voices, time) => html`
                 <tr>
@@ -167,11 +182,11 @@ module.exports = emit => ({
                         }
                         onmousedown=${ev => {
                             ev.preventDefault(true)
-                            actions.startSelecting([time, voice])
+                            actions.selection.start([time, voice])
                         }}
                         onmouseover=${ev => {
                             ev.preventDefault(true)
-                            actions.setSelection(time)
+                            actions.selection.set(time)
                         }}
                     >
                         ${noteName(note)}
@@ -181,7 +196,7 @@ module.exports = emit => ({
                 `)}
             </table>`,
         
-        controller: (state, actions) => html`
+        controls: (state, actions) => html`
             <span>
                 <button class=${!!state.playing.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
                 <button class=${!!state.playing.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>

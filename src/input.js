@@ -23,7 +23,7 @@ module.exports = emit => ({
             if (note === null) return
             if (char === state.pressed) return
             state.pressed = char
-            emit('keyboard:attackNote', note)
+            emit('input:attackNote', note)
             return state
         },
         up (state, actions, char) {
@@ -31,7 +31,7 @@ module.exports = emit => ({
             if (note === null) return
             if (char !== state.pressed) return
             state.pressed = null
-            emit('keyboard:releaseNote', note)
+            emit('input:releaseNote', note)
             return state
         }
     },

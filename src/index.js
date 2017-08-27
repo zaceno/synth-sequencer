@@ -7,10 +7,9 @@ const emit = app({
     state: {},
     mixins: [
         partial,
-        partial.mixin('keyboard',   require('./keyboard')),
-        partial.mixin('synthpanel', require('./synthpanel')),
-        partial.mixin('voices',     require('./voices')),
-        partial.mixin('sequencer',  require('./sequencer')),
+        partial.mixin('input',        require('./input')),
+        partial.mixin('synthcontrol', require('./synthcontrol')),
+        partial.mixin('sequencer',    require('./sequencer')),
     ],
     events: {
         load (state, actions) {
@@ -35,14 +34,14 @@ const emit = app({
         <app-layout>
             <app-layout-left>
                 <main-panel>
-                    ${views.sequencer.controller()}
-                    ${views.voices.voices()}
-                    ${views.synthpanel.synthpanel()}
+                    ${views.sequencer.controls()}
+                    ${views.synthcontrol.voices()}
+                    ${views.synthcontrol.panel()}
                 </main-panel>
-                ${views.keyboard.keyboard()}
+                ${views.input.keyboard()}
             </app-layout-left>
             <app-layout-right>
-                ${views.sequencer.sequencer()}
+                ${views.sequencer.grid()}
             </app-layout-right>
         </app-layout>`,
 })

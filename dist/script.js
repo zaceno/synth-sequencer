@@ -1,1 +1,925 @@
-!function e(t,n,i){function a(o,r){if(!n[o]){if(!t[o]){var l="function"==typeof require&&require;if(!r&&l)return l(o,!0);if(s)return s(o,!0);var c=new Error("Cannot find module '"+o+"'");throw c.code="MODULE_NOT_FOUND",c}var u=n[o]={exports:{}};t[o][0].call(u.exports,function(e){var n=t[o][1][e];return a(n||e)},u,u.exports,e,t,n,i)}return n[o].exports}for(var s="function"==typeof require&&require,o=0;o<i.length;o++)a(i[o]);return a}({1:[function(e,t,n){(function(i){!function(e){"object"==typeof n&&void 0!==t?t.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:void 0!==i?i:"undefined"!=typeof self?self:this).partial=e()}(function(){return function t(n,i,a){function s(r,l){if(!i[r]){if(!n[r]){var c="function"==typeof e&&e;if(!l&&c)return c(r,!0);if(o)return o(r,!0);var u=new Error("Cannot find module '"+r+"'");throw u.code="MODULE_NOT_FOUND",u}var p=i[r]={exports:{}};n[r][0].call(p.exports,function(e){return s(n[r][1][e]||e)},p,p.exports,t,n,i,a)}return i[r].exports}for(var o="function"==typeof e&&e,r=0;r<a.length;r++)s(a[r]);return s}({1:[function(e,t,n){const i=(e,t,n)=>i=>n({[e]:Object.assign(t[e],i)}),a=(e,t)=>(n,a,s)=>o=>{const r=t(n[e],a[e],s),l=i(e,n,o);return"function"==typeof r?r(l):l(r)},s=(e,t)=>{const n={};for(let i in t)n[i]=a(e,t[i]);return n},o=(e,t)=>(n,i,a)=>t(n[e],i[e],a),r=(e,t)=>{const n={};for(let i in t)"function"==typeof t[i]?n[i]=o(e,t[i]):n[i]=t[i].map(t=>o(e,t));return n},l=e=>{const t={},n=(e,n,i,a,s)=>(...o)=>t[a][s](e[a],n[a],i[a],...o),i=(e,i)=>{const a={};for(let s in t){a[s]={};for(let o in t[s])a[s][o]=n(e,i,a,s,o)}return a};return{events:{render:(e,t,n)=>(e,t)=>n(e,t,i(e,t)),registerWidget:(e,n,[i,a,s])=>{t[i]=t[i]||{},t[i][a]=s}}}};l.mixin=((e,t)=>n=>{const i=t(n);for(let t in i.views||{})n("registerWidget",[e,t,i.views[t]]);return{state:{[e]:i.state||{}},actions:{[e]:s(e,i.actions||{})},events:r(e,i.events||{})}}),t.exports=l},{}]},{},[1])(1)})}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{}],2:[function(e,t,n){!function(e,i){"object"==typeof n&&void 0!==t?i(n):"function"==typeof define&&define.amd?define(["exports"],i):i(e.hyperapp={})}(this,function(e){"use strict";var t,n=[],i=[];e.h=function(e,i){var a,s=[];for(t=arguments.length;t-- >2;)n.push(arguments[t]);for(;n.length;)if(Array.isArray(a=n.pop()))for(t=a.length;t--;)n.push(a[t]);else null!=a&&!0!==a&&!1!==a&&("number"==typeof a&&(a+=""),s.push(a));return"string"==typeof e?{tag:e,data:i||{},children:s}:e(i,s)},e.app=function(e){function t(e,n,i){Object.keys(n||[]).map(function(a){var r=n[a],l=i?i+"."+a:a;"function"==typeof r?e[a]=function(e){o("action",{name:l,data:e});var t=o("resolve",r(m,g,e));return"function"==typeof t?t(s):s(t)}:t(e[a]||(e[a]={}),r,l)})}function n(e){for(b=d(N,b,v,v=o("render",h)(m,g),y=!y);e=i.pop();)e()}function a(){h&&!y&&requestAnimationFrame(n,y=!y)}function s(e){return e&&(e=o("update",r(m,e)))&&a(m=e),m}function o(e,t){return(T[e]||[]).map(function(e){var n=e(m,g,t);null!=n&&(t=n)}),t}function r(e,t){var n={};for(var i in e)n[i]=e[i];for(var i in t)n[i]=t[i];return n}function l(e){if(e&&(e=e.data))return e.key}function c(e,t){if("string"==typeof e)n=document.createTextNode(e);else{var n=(t=t||"svg"===e.tag)?document.createElementNS("http://www.w3.org/2000/svg",e.tag):document.createElement(e.tag);e.data&&e.data.oncreate&&i.push(function(){e.data.oncreate(n)});for(var a in e.data)u(n,a,e.data[a]);for(a=0;a<e.children.length;)n.appendChild(c(e.children[a++],t))}return n}function u(e,t,n,i){if("key"===t);else if("style"===t)for(var a in r(i,n=n||{}))e.style[a]=n[a]||"";else{try{e[t]=n}catch(e){}"function"!=typeof n&&(n?e.setAttribute(t,n):e.removeAttribute(t))}}function p(e,t,n){for(var a in r(t,n)){var s=n[a],o="value"===a||"checked"===a?e[a]:t[a];s!==o&&u(e,a,s,o)}n&&n.onupdate&&i.push(function(){n.onupdate(e,t)})}function f(e,t,n){n&&n.onremove?n.onremove(t):e.removeChild(t)}function d(e,t,n,i,a,s){if(null==n)t=e.insertBefore(c(i,a),t);else if(null!=i.tag&&i.tag===n.tag){p(t,n.data,i.data),a=a||"svg"===i.tag;for(var o=i.children.length,r=n.children.length,u={},m=[],v={},y=0;y<r;y++)g=m[y]=t.childNodes[y],null!=(x=l(T=n.children[y]))&&(u[x]=[g,T]);for(var y=0,h=0;h<o;){var g=m[y],T=n.children[y],_=i.children[h];if(v[x=l(T)])y++;else{var N=l(_),b=u[N]||[];null==N?(null==x&&(d(t,g,T,_,a),h++),y++):(x===N?(d(t,b[0],b[1],_,a),y++):b[0]?(t.insertBefore(b[0],g),d(t,b[0],b[1],_,a)):d(t,g,null,_,a),h++,v[N]=_)}}for(;y<r;){var x=l(T=n.children[y]);null==x&&f(t,m[y],T.data),y++}for(var y in u){var k=(b=u[y])[1];v[k.data.key]||f(t,b[0],k.data)}}else t&&i!==t.nodeValue&&(t=e.insertBefore(c(i,a),s=t),f(e,s,n.data));return t}for(var m,v,y,h=e.view,g={},T={},_=e.mixins||[],N=e.root||document.body,b=N.children[0],x=0;x<=_.length;x++){var k=_[x]?_[x](o):e;Object.keys(k.events||[]).map(function(e){T[e]=(T[e]||[]).concat(k.events[e])}),t(g,k.actions),m=r(m,k.state)}return a((v=o("load",b))===b&&(v=b=null)),o}})},{}],3:[function(e,t,n){const{app:i,h:a}=e("hyperapp"),s=e("hyperapp-partial"),o=i({state:{},mixins:[s,s.mixin("keyboard",e("./keyboard")),s.mixin("synthpanel",e("./synthpanel")),s.mixin("voices",e("./voices")),s.mixin("sequencer",e("./sequencer"))],events:{load(e,t){setTimeout(e=>{const t=localStorage.getItem("SYNTHDATA");if(!t)return;const{voices:n,notes:i}=JSON.parse(t);n&&o("persist:setVoices",n),i&&o("persist:setNotes",i)},0)},update(e,t){setTimeout(e=>{localStorage.setItem("SYNTHDATA",JSON.stringify({voices:o("persist:getVoices"),notes:o("persist:getNotes")}))})}},view:(e,t,n)=>a("app-layout",{},["\n            ",a("app-layout-left",{},["\n                ",a("main-panel",{},["\n                    ",n.sequencer.controller(),"\n                    ",n.voices.voices(),"\n                    ",n.synthpanel.synthpanel(),"\n                "]),"\n                ",n.keyboard.keyboard(),"\n            "]),"\n            ",a("app-layout-right",{},["\n                ",n.sequencer.sequencer(),"\n            "]),"\n        "])})},{"./keyboard":4,"./sequencer":5,"./synthpanel":7,"./voices":8,hyperapp:2,"hyperapp-partial":1}],4:[function(e,t,n){const{h:i}=e("hyperapp"),a=["Z","S","X","D","C","V","G","B","H","N","J","M","Q","2","W","3","E","R","5","T","6","Y","7","U","I"],s=["S","D","G","H","J","2","3","5","6","7"],o=function(e){return s.indexOf(e)>-1},r=function(e){const t=a.indexOf(e);return t>-1?t:null};t.exports=(e=>({state:{pressed:null},actions:{down(t,n,i){const a=r(i);if(null!==a&&i!==t.pressed)return t.pressed=i,e("keyboard:attackNote",a),t},up(t,n,i){const a=r(i);if(null!==a&&i===t.pressed)return t.pressed=null,e("keyboard:releaseNote",a),t}},events:{load(e,t){document.addEventListener("keydown",e=>{t.down(String.fromCharCode(e.keyCode))}),document.addEventListener("keyup",e=>{t.up(String.fromCharCode(e.keyCode))})}},views:{keyboard:({pressed:e},{down:t,up:n})=>i("keyboard",{},["\n                ",a.map(a=>i("clav",{onmousedown:e=>t(a),onmouseup:e=>n(a),className:(o(a)?"black":"white")+(e===a?" pressed":"")},["\n                    ",i("char",{},[a]),"\n                "])),"\n            "])}}))},{hyperapp:2}],5:[function(e,t,n){function i(e){return null===e?"":r[e]}function a({voice:e,start:t,end:n},i,a){return e===i&&(a>=t&&a<=n||a<=t&&a>=n)}const{h:s}=e("hyperapp"),o=100,r=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B","C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];t.exports=(e=>({state:{times:[...Array(32).keys()].map(e=>[...Array(8).keys()].map(e=>null)),selection:{selecting:!1,start:-1,end:-1,voice:-1},playing:{recordNote:null,record:!1,interval:null,time:-1}},actions:{startSelecting:(t,n,[i,a])=>(t.selection.selecting=!0,t.selection.start=i,t.selection.voice=a,e("sequencer:selectVoice",a),t.selection.end=i,t),setSelection(e,t,n){if(e.selection.selecting)return e.selection.end=n,e},stopSelecting:(e,t,n)=>(e.selection.selecting=!1,e),setNote(e,t,n){if(-1===e.selection.start)return;const{start:i,end:a,voice:s}=e.selection,[o,r]=i<a?[i,a]:[a,i];for(var l=o;l<=r;l++)e.times[l][s]=n;return e.selection.start=-1,e.selection.end=-1,e},_setRecordedNote(t,n){if(t.playing.record&&null!==t.playing.recordNote)return t.times[t.playing.time][e("voices:selectedIndex?")]=t.playing.recordNote,t},_recordAttackNote(e,t,n){if(e.playing.record)return e.playing.recordNote=n,e},recordAttackNote(e,t,n){t._recordAttackNote(n),t._setRecordedNote()},recordReleaseNote(e,t,n){e.playing.recordNote=null},_nextNote(t,n){const i=t.playing.time,a=-1===i?[...Array(8).keys()].map(e=>null):t.times[i],s=(i+1)%t.times.length,o=t.times[s];for(var r=0;r<8;r++)a[r]!==o[r]&&(null===o[r]?e("sequencer:releaseNote",{voice:r,note:a[r]}):e("sequencer:attackNote",{voice:r,note:o[r]}));return t.playing.time=s,t},nextNote(e,t){t._nextNote(),t._setRecordedNote()},startPlaying(e,t,n){if(!e.playing.interval)return e.playing.interval=setInterval(t.nextNote,o),e.playing.record=n||!1,e},startRecording(e,t){t.startPlaying(!0)},stopPlaying:(t,n)=>(t.playing.interval&&clearInterval(t.playing.interval),t.playing.interval=null,t.playing.record=!1,e("sequencer:stopped"),t),setSavedTimes(e,t,n){if(n)return e.times=n,e},setTime:(e,t,n)=>(e.playing.time=n,e)},events:{load:(e,t)=>{window.addEventListener("mouseup",t.stopSelecting),window.addEventListener("keydown",e=>{32===e.keyCode&&t.setNote(null)})},"keyboard:attackNote":[(e,t,n)=>(t.setNote(n),n),(e,t,n)=>(t.recordAttackNote(n),n)],"keyboard:releaseNote":[(e,t,n)=>t.recordReleaseNote(n)],"persist:getNotes":(e,t)=>e.times,"persist:setNotes":(e,t,n)=>t.setSavedTimes(n)},views:{sequencer:(e,t)=>s("table",{className:"sequencer"},["\n                ",e.times.map((n,o)=>s("tr",{},["\n                    ",s("td",{onclick:e=>t.setTime(o),className:"time"},[o]),"\n                    ",n.map((n,r)=>s("td",{onmousedown:e=>{e.preventDefault(!0),t.startSelecting([o,r])},onmouseover:e=>{e.preventDefault(!0),t.setSelection(o)},className:(a(e.selection,r,o)?"selected":"")+(e.playing.time===o?" playing":"")},["\n                        ",i(n),"\n                    "])),"\n                "])),"\n            "]),controller:(e,t)=>s("span",{},["\n                ",s("button",{onmousedown:t.startRecording,className:e.playing.record?"active":""},["Rec"]),"\n                ",s("button",{onmousedown:t.startPlaying,className:e.playing.interval?"active":""},["Play"]),"\n                ",s("button",{onmousedown:t.stopPlaying},["Stop"]),"\n                ",s("button",{onmousedown:e=>t.setNote(null)},["X"]),"\n            "])}}))},{hyperapp:2}],6:[function(e,t,n){function i(e,t){return Math.exp((12*t+e-o)*Math.log(2)/12)*s}function a(e){return e=e||{},Object.assign({},c,e)}const s=440,o=69,r=["sawtooth","square","triangle","sine"],l=["bandpass","lowpass","highpass"],c={octave:4,oscillatorType:"triangle",ampLevel:.3,sustainLevel:.6,attackTime:.02,decayTime:.04,releaseTime:.4,filterType:"lowpass",filterCutoff:7600,filterQ:10};class u{constructor(e,t){t=a(t),this._ctx=e,this._osc=this._ctx.createOscillator(),this._osc.type=t.oscillatorType,this._flt=this._ctx.createBiquadFilter(),this._flt.type=t.filterType,this._flt.frequency.value=t.filterCutoff,this._flt.Q.value=t.filterQ,this._env=this._ctx.createGain(),this._env.gain.value=0,this._amp=this._ctx.createGain(),this._amp.gain.value=t.ampLevel,this._osc.connect(this._flt),this._flt.connect(this._env),this._env.connect(this._amp),this._amp.connect(this._ctx.destination),this._osc.start(),this.octave=t.octave,this.attackTime=t.attackTime,this.decayTime=t.decayTime,this.releaseTime=t.releaseTime,this.sustainLevel=t.sustainLevel,this._playing=!1}get oscillatorType(){return this._osc.type}set oscillatorType(e){this._osc.type=e}get ampLevel(){return this._amp.gain.value}set ampLevel(e){this._amp.gain.value=e}get filterType(){return this._flt.type}set filterType(e){this._flt.type=e}get filterCutoff(){return this._flt.frequency.value}set filterCutoff(e){this._flt.frequency.value=e}get filterQ(){return this._flt.Q.value}set filterQ(e){this._flt.Q.value=e}attack(e){if(this._playing===e)return;this._playing=e;const t=i(e,this.octave);var n=this._ctx.currentTime;this._osc.frequency.cancelScheduledValues(n),this._env.gain.cancelScheduledValues(n),n+=.01,this._osc.frequency.linearRampToValueAtTime(t,n),this._env.gain.linearRampToValueAtTime(0,n),n+=+this.attackTime,this._env.gain.linearRampToValueAtTime(1,n),n+=+this.decayTime,this._env.gain.linearRampToValueAtTime(+this.sustainLevel,n)}release(e){if(this._playing===e){this._playing=null;var t=this._ctx.currentTime+.01;this._env.gain.cancelScheduledValues(t),t+=+this.releaseTime,this._env.gain.linearRampToValueAtTime(0,t)}}stop(){null!==this._playing&&this.release(this._playing)}}t.exports={Synth:u,OSCILLATOR_TYPES:r,FILTER_TYPES:l}},{}],7:[function(e,t,n){const{h:i}=e("hyperapp"),{OSCILLATOR_TYPES:a,FILTER_TYPES:s}=e("./synth"),o=({value:e,set:t,min:n,max:a,step:s})=>i("input",{type:"range",min:n||0,max:a,step:s||"any",value:e,oninput:e=>t(e.currentTarget.value)}),r=({options:e,value:t,set:n})=>i("span",{},["\n        ",e.map(e=>i("button",{onclick:t=>n(e),className:t===e?"active":""},["\n                ",e,"\n            "])),"\n    "]);t.exports=(e=>({actions:{setProp:(t,n,[i,a])=>(e("voices:selected?")[i]=a,t)},views:{synthpanel:(t,n)=>{const l=e("voices:selected?"),c=e=>o(Object.assign({set:t=>n.setProp([e.name,t]),value:l[e.name]},e)),u=e=>r(Object.assign({set:t=>n.setProp([e.name,t]),value:l[e.name]},e));return i("synth-panel",{},["\n                ",i("div",{className:"col-1"},["\n                    ",i("p",{},["\n                        ",i("label",{},["Oscillator:"]),"\n                        ",u({name:"oscillatorType",options:a}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Octave:"]),"\n                        ",c({name:"octave",min:1,max:6,step:1}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Filter:"]),"\n                        ",u({name:"filterType",options:s}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Cutoff"]),"\n                        ",c({name:"filterCutoff",min:60,max:7600}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Resonance"]),"\n                        ",c({name:"filterQ",max:20}),"\n                    "]),"\n                "]),"\n                ",i("div",{className:"col-2"},["\n                    ",i("p",{},["\n                        ",i("label",{},["Attack Time:"]),"\n                        ",c({name:"attackTime",max:.2}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Decay Time:"]),"\n                        ",c({name:"decayTime",max:.2}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Release Time:"]),"\n                        ",c({name:"releaseTime",max:1}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Sustain Level:"]),"\n                        ",c({name:"sustainLevel",max:1}),"\n                    "]),"\n                    ",i("p",{},["\n                        ",i("label",{},["Amp Level:"]),"\n                        ",c({name:"ampLevel",max:1}),"\n                    "]),"\n                "]),"\n            "])}}}))},{"./synth":6,hyperapp:2}],8:[function(e,t,n){const{h:i}=e("hyperapp"),{Synth:a}=e("./synth"),s=new(window.AudioContext||window.webkitAudioContext),o=["oscillatorType","octave","filterType","filterCutoff","filterQ","attackTime","decayTime","releaseTime","sustainLevel","ampLevel"];t.exports=(e=>({state:{selected:0,list:[...Array(8).keys()].map(e=>new a(s))},actions:{select:(e,t,n)=>({selected:n})},events:{"persist:getVoices":({list:e})=>e.map(e=>{const t={};return o.forEach(n=>{t[n]=e[n]}),t}),"persist:setVoices":({list:e},t,n)=>{console.log(n),n.forEach((t,n)=>{o.forEach(i=>{e[n][i]=t[i]})})},"voices:selectedIndex?":({selected:e})=>e,"voices:selected?":({list:e,selected:t})=>e[t],"sequencer:stopped":({list:e})=>e.forEach(e=>e.stop()),"sequencer:selectVoice":(e,t,n)=>t.select(n),"sequencer:attackNote":({list:e},t,{voice:n,note:i})=>e[n].attack(i),"sequencer:releaseNote":({list:e},t,{voice:n,note:i})=>e[n].release(i),"keyboard:attackNote":({list:e,selected:t},n,i)=>e[t].attack(i),"keyboard:releaseNote":({list:e,selected:t},n,i)=>e[t].release(i)},views:{voices:({list:e,selected:t},{select:n})=>i("voice-selector",{},["\n                ",e.map((e,a)=>i("button",{onmousedown:e=>n(a),className:t===a?"active":""},["\n                    Voice ",a+1,"\n                "])),"\n            "])}}))},{"./synth":6,hyperapp:2}]},{},[3]);
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).partial=e()}}(function(){return function e(t,n,r){function o(f,s){if(!n[f]){if(!t[f]){var u="function"==typeof require&&require;if(!s&&u)return u(f,!0);if(i)return i(f,!0);var a=new Error("Cannot find module '"+f+"'");throw a.code="MODULE_NOT_FOUND",a}var c=n[f]={exports:{}};t[f][0].call(c.exports,function(e){var n=t[f][1][e];return o(n||e)},c,c.exports,e,t,n,r)}return n[f].exports}for(var i="function"==typeof require&&require,f=0;f<r.length;f++)o(r[f]);return o}({1:[function(e,t,n){const r=(e,t,n)=>r=>n({[e]:Object.assign(t[e],r)}),o=(e,t)=>(n,o,i)=>f=>{const s=t(n[e],o[e],i),u=r(e,n,f);return"function"==typeof s?s(u):u(s)},i=(e,t)=>{const n={};for(let r in t)n[r]=("function"==typeof t[r]?o:i)(e,t[r]);return n},f=(e,t)=>(n,r,o)=>t(n[e],r[e],o),s=(e,t)=>(n,r,o,...i)=>t(n[e],r[e],o[e],...i),u=e=>{const t={};return{events:{render:(e,n,r)=>(e,n)=>r(e,n,t),"partial:render":(e,n,[r,o])=>r(e,n,t,...o),"partial:register":(n,r,[o,i,f])=>{t[o]=t[o]||{},t[o][i]=((...t)=>e("partial:render",[f,t]))}}}};u.mixin=((e,t)=>n=>{const r=t(n),o={state:{[e]:{}},actions:{[e]:{}},events:{}};o.state[e]=r.state||{},o.actions[e]=i(e,r.actions||{});for(let t in r.events||{})"function"==typeof r.events[t]?o.events[t]=f(e,r.events[t]):o.events[t]=r.events[t].map(t=>f(e,t));for(let t in r.views||{})n("partial:register",[e,t,s(e,r.views[t])]);return o}),t.exports=u},{}]},{},[1])(1)});
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],2:[function(require,module,exports){
+!function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n(e.hyperapp={})}(this,function(e){"use strict";function n(e,n){var t,o=[];for(r=arguments.length;r-- >2;)a.push(arguments[r]);for(;a.length;)if(Array.isArray(t=a.pop()))for(r=t.length;r--;)a.push(t[r]);else null!=t&&!0!==t&&!1!==t&&("number"==typeof t&&(t+=""),o.push(t));return"string"==typeof e?{tag:e,data:n||{},children:o}:e(n,o)}function t(e){function n(e,t,r){Object.keys(t||[]).map(function(o){var u=t[o],f=r?r+"."+o:o;"function"==typeof u?e[o]=function(e){i("action",{name:f,data:e});var n=i("resolve",u(p,m,e));return"function"==typeof n?n(a):a(n)}:n(e[o]||(e[o]={}),u,f)})}function t(e){for(x=v(w,x,h,h=i("render",y)(p,m),g=!g);e=o.pop();)e()}function r(){y&&!g&&requestAnimationFrame(t,g=!g)}function a(e){return e&&(e=i("update",u(p,e)))&&r(p=e),p}function i(e,n){return(b[e]||[]).map(function(e){var t=e(p,m,n);null!=t&&(n=t)}),n}function u(e,n){var t={};for(var r in e)t[r]=e[r];for(var r in n)t[r]=n[r];return t}function f(e){if(e&&(e=e.data))return e.key}function c(e,n){if("string"==typeof e)var t=document.createTextNode(e);else{var t=(n=n||"svg"===e.tag)?document.createElementNS("http://www.w3.org/2000/svg",e.tag):document.createElement(e.tag);e.data&&e.data.oncreate&&o.push(function(){e.data.oncreate(t)});for(var r in e.data)l(t,r,e.data[r]);for(var r=0;r<e.children.length;)t.appendChild(c(e.children[r++],n))}return t}function l(e,n,t,r){if("key"===n);else if("style"===n)for(var a in u(r,t=t||{}))e.style[a]=t[a]||"";else{try{e[n]=t}catch(e){}"function"!=typeof t&&(t?e.setAttribute(n,t):e.removeAttribute(n))}}function d(e,n,t){for(var r in u(n,t)){var a=t[r],i="value"===r||"checked"===r?e[r]:n[r];a!==i&&l(e,r,a,i)}t&&t.onupdate&&o.push(function(){t.onupdate(e,n)})}function s(e,n,t){t&&t.onremove?t.onremove(n):e.removeChild(n)}function v(e,n,t,r,a,o){if(null==t)n=e.insertBefore(c(r,a),n);else if(null!=r.tag&&r.tag===t.tag){d(n,t.data,r.data),a=a||"svg"===r.tag;for(var i=r.children.length,u=t.children.length,l={},p=[],h={},g=0;g<u;g++){var y=p[g]=n.childNodes[g],m=t.children[g],b=f(m);null!=b&&(l[b]=[y,m])}for(var g=0,k=0;k<i;){var y=p[g],m=t.children[g],w=r.children[k],b=f(m);if(h[b])g++;else{var x=f(w),A=l[x]||[];null==x?(null==b&&(v(n,y,m,w,a),k++),g++):(b===x?(v(n,A[0],A[1],w,a),g++):A[0]?(n.insertBefore(A[0],y),v(n,A[0],A[1],w,a)):v(n,y,null,w,a),k++,h[x]=w)}}for(;g<u;){var m=t.children[g],b=f(m);null==b&&s(n,p[g],m.data),g++}for(var g in l){var A=l[g],j=A[1];h[j.data.key]||s(n,A[0],j.data)}}else n&&r!==n.nodeValue&&(n=e.insertBefore(c(r,a),o=n),s(e,o,t.data));return n}for(var p,h,g,y=e.view,m={},b={},k=e.mixins||[],w=e.root||document.body,x=w.children[0],A=0;A<=k.length;A++){var j=k[A]?k[A](i):e;Object.keys(j.events||[]).map(function(e){b[e]=(b[e]||[]).concat(j.events[e])}),n(m,j.actions),p=u(p,j.state)}return r((h=i("load",x))===x&&(h=x=null)),i}var r,a=[],o=[];e.h=n,e.app=t});
+
+},{}],3:[function(require,module,exports){
+module.exports = attributeToProperty
+
+var transform = {
+  'class': 'className',
+  'for': 'htmlFor',
+  'http-equiv': 'httpEquiv'
+}
+
+function attributeToProperty (h) {
+  return function (tagName, attrs, children) {
+    for (var attr in attrs) {
+      if (attr in transform) {
+        attrs[transform[attr]] = attrs[attr]
+        delete attrs[attr]
+      }
+    }
+    return h(tagName, attrs, children)
+  }
+}
+
+},{}],4:[function(require,module,exports){
+var attrToProp = require('hyperscript-attribute-to-property')
+
+var VAR = 0, TEXT = 1, OPEN = 2, CLOSE = 3, ATTR = 4
+var ATTR_KEY = 5, ATTR_KEY_W = 6
+var ATTR_VALUE_W = 7, ATTR_VALUE = 8
+var ATTR_VALUE_SQ = 9, ATTR_VALUE_DQ = 10
+var ATTR_EQ = 11, ATTR_BREAK = 12
+var COMMENT = 13
+
+module.exports = function (h, opts) {
+  if (!opts) opts = {}
+  var concat = opts.concat || function (a, b) {
+    return String(a) + String(b)
+  }
+  if (opts.attrToProp !== false) {
+    h = attrToProp(h)
+  }
+
+  return function (strings) {
+    var state = TEXT, reg = ''
+    var arglen = arguments.length
+    var parts = []
+
+    for (var i = 0; i < strings.length; i++) {
+      if (i < arglen - 1) {
+        var arg = arguments[i+1]
+        var p = parse(strings[i])
+        var xstate = state
+        if (xstate === ATTR_VALUE_DQ) xstate = ATTR_VALUE
+        if (xstate === ATTR_VALUE_SQ) xstate = ATTR_VALUE
+        if (xstate === ATTR_VALUE_W) xstate = ATTR_VALUE
+        if (xstate === ATTR) xstate = ATTR_KEY
+        p.push([ VAR, xstate, arg ])
+        parts.push.apply(parts, p)
+      } else parts.push.apply(parts, parse(strings[i]))
+    }
+
+    var tree = [null,{},[]]
+    var stack = [[tree,-1]]
+    for (var i = 0; i < parts.length; i++) {
+      var cur = stack[stack.length-1][0]
+      var p = parts[i], s = p[0]
+      if (s === OPEN && /^\//.test(p[1])) {
+        var ix = stack[stack.length-1][1]
+        if (stack.length > 1) {
+          stack.pop()
+          stack[stack.length-1][0][2][ix] = h(
+            cur[0], cur[1], cur[2].length ? cur[2] : undefined
+          )
+        }
+      } else if (s === OPEN) {
+        var c = [p[1],{},[]]
+        cur[2].push(c)
+        stack.push([c,cur[2].length-1])
+      } else if (s === ATTR_KEY || (s === VAR && p[1] === ATTR_KEY)) {
+        var key = ''
+        var copyKey
+        for (; i < parts.length; i++) {
+          if (parts[i][0] === ATTR_KEY) {
+            key = concat(key, parts[i][1])
+          } else if (parts[i][0] === VAR && parts[i][1] === ATTR_KEY) {
+            if (typeof parts[i][2] === 'object' && !key) {
+              for (copyKey in parts[i][2]) {
+                if (parts[i][2].hasOwnProperty(copyKey) && !cur[1][copyKey]) {
+                  cur[1][copyKey] = parts[i][2][copyKey]
+                }
+              }
+            } else {
+              key = concat(key, parts[i][2])
+            }
+          } else break
+        }
+        if (parts[i][0] === ATTR_EQ) i++
+        var j = i
+        for (; i < parts.length; i++) {
+          if (parts[i][0] === ATTR_VALUE || parts[i][0] === ATTR_KEY) {
+            if (!cur[1][key]) cur[1][key] = strfn(parts[i][1])
+            else cur[1][key] = concat(cur[1][key], parts[i][1])
+          } else if (parts[i][0] === VAR
+          && (parts[i][1] === ATTR_VALUE || parts[i][1] === ATTR_KEY)) {
+            if (!cur[1][key]) cur[1][key] = strfn(parts[i][2])
+            else cur[1][key] = concat(cur[1][key], parts[i][2])
+          } else {
+            if (key.length && !cur[1][key] && i === j
+            && (parts[i][0] === CLOSE || parts[i][0] === ATTR_BREAK)) {
+              // https://html.spec.whatwg.org/multipage/infrastructure.html#boolean-attributes
+              // empty string is falsy, not well behaved value in browser
+              cur[1][key] = key.toLowerCase()
+            }
+            break
+          }
+        }
+      } else if (s === ATTR_KEY) {
+        cur[1][p[1]] = true
+      } else if (s === VAR && p[1] === ATTR_KEY) {
+        cur[1][p[2]] = true
+      } else if (s === CLOSE) {
+        if (selfClosing(cur[0]) && stack.length) {
+          var ix = stack[stack.length-1][1]
+          stack.pop()
+          stack[stack.length-1][0][2][ix] = h(
+            cur[0], cur[1], cur[2].length ? cur[2] : undefined
+          )
+        }
+      } else if (s === VAR && p[1] === TEXT) {
+        if (p[2] === undefined || p[2] === null) p[2] = ''
+        else if (!p[2]) p[2] = concat('', p[2])
+        if (Array.isArray(p[2][0])) {
+          cur[2].push.apply(cur[2], p[2])
+        } else {
+          cur[2].push(p[2])
+        }
+      } else if (s === TEXT) {
+        cur[2].push(p[1])
+      } else if (s === ATTR_EQ || s === ATTR_BREAK) {
+        // no-op
+      } else {
+        throw new Error('unhandled: ' + s)
+      }
+    }
+
+    if (tree[2].length > 1 && /^\s*$/.test(tree[2][0])) {
+      tree[2].shift()
+    }
+
+    if (tree[2].length > 2
+    || (tree[2].length === 2 && /\S/.test(tree[2][1]))) {
+      throw new Error(
+        'multiple root elements must be wrapped in an enclosing tag'
+      )
+    }
+    if (Array.isArray(tree[2][0]) && typeof tree[2][0][0] === 'string'
+    && Array.isArray(tree[2][0][2])) {
+      tree[2][0] = h(tree[2][0][0], tree[2][0][1], tree[2][0][2])
+    }
+    return tree[2][0]
+
+    function parse (str) {
+      var res = []
+      if (state === ATTR_VALUE_W) state = ATTR
+      for (var i = 0; i < str.length; i++) {
+        var c = str.charAt(i)
+        if (state === TEXT && c === '<') {
+          if (reg.length) res.push([TEXT, reg])
+          reg = ''
+          state = OPEN
+        } else if (c === '>' && !quot(state) && state !== COMMENT) {
+          if (state === OPEN) {
+            res.push([OPEN,reg])
+          } else if (state === ATTR_KEY) {
+            res.push([ATTR_KEY,reg])
+          } else if (state === ATTR_VALUE && reg.length) {
+            res.push([ATTR_VALUE,reg])
+          }
+          res.push([CLOSE])
+          reg = ''
+          state = TEXT
+        } else if (state === COMMENT && /-$/.test(reg) && c === '-') {
+          if (opts.comments) {
+            res.push([ATTR_VALUE,reg.substr(0, reg.length - 1)],[CLOSE])
+          }
+          reg = ''
+          state = TEXT
+        } else if (state === OPEN && /^!--$/.test(reg)) {
+          if (opts.comments) {
+            res.push([OPEN, reg],[ATTR_KEY,'comment'],[ATTR_EQ])
+          }
+          reg = c
+          state = COMMENT
+        } else if (state === TEXT || state === COMMENT) {
+          reg += c
+        } else if (state === OPEN && /\s/.test(c)) {
+          res.push([OPEN, reg])
+          reg = ''
+          state = ATTR
+        } else if (state === OPEN) {
+          reg += c
+        } else if (state === ATTR && /[^\s"'=/]/.test(c)) {
+          state = ATTR_KEY
+          reg = c
+        } else if (state === ATTR && /\s/.test(c)) {
+          if (reg.length) res.push([ATTR_KEY,reg])
+          res.push([ATTR_BREAK])
+        } else if (state === ATTR_KEY && /\s/.test(c)) {
+          res.push([ATTR_KEY,reg])
+          reg = ''
+          state = ATTR_KEY_W
+        } else if (state === ATTR_KEY && c === '=') {
+          res.push([ATTR_KEY,reg],[ATTR_EQ])
+          reg = ''
+          state = ATTR_VALUE_W
+        } else if (state === ATTR_KEY) {
+          reg += c
+        } else if ((state === ATTR_KEY_W || state === ATTR) && c === '=') {
+          res.push([ATTR_EQ])
+          state = ATTR_VALUE_W
+        } else if ((state === ATTR_KEY_W || state === ATTR) && !/\s/.test(c)) {
+          res.push([ATTR_BREAK])
+          if (/[\w-]/.test(c)) {
+            reg += c
+            state = ATTR_KEY
+          } else state = ATTR
+        } else if (state === ATTR_VALUE_W && c === '"') {
+          state = ATTR_VALUE_DQ
+        } else if (state === ATTR_VALUE_W && c === "'") {
+          state = ATTR_VALUE_SQ
+        } else if (state === ATTR_VALUE_DQ && c === '"') {
+          res.push([ATTR_VALUE,reg],[ATTR_BREAK])
+          reg = ''
+          state = ATTR
+        } else if (state === ATTR_VALUE_SQ && c === "'") {
+          res.push([ATTR_VALUE,reg],[ATTR_BREAK])
+          reg = ''
+          state = ATTR
+        } else if (state === ATTR_VALUE_W && !/\s/.test(c)) {
+          state = ATTR_VALUE
+          i--
+        } else if (state === ATTR_VALUE && /\s/.test(c)) {
+          res.push([ATTR_VALUE,reg],[ATTR_BREAK])
+          reg = ''
+          state = ATTR
+        } else if (state === ATTR_VALUE || state === ATTR_VALUE_SQ
+        || state === ATTR_VALUE_DQ) {
+          reg += c
+        }
+      }
+      if (state === TEXT && reg.length) {
+        res.push([TEXT,reg])
+        reg = ''
+      } else if (state === ATTR_VALUE && reg.length) {
+        res.push([ATTR_VALUE,reg])
+        reg = ''
+      } else if (state === ATTR_VALUE_DQ && reg.length) {
+        res.push([ATTR_VALUE,reg])
+        reg = ''
+      } else if (state === ATTR_VALUE_SQ && reg.length) {
+        res.push([ATTR_VALUE,reg])
+        reg = ''
+      } else if (state === ATTR_KEY) {
+        res.push([ATTR_KEY,reg])
+        reg = ''
+      }
+      return res
+    }
+  }
+
+  function strfn (x) {
+    if (typeof x === 'function') return x
+    else if (typeof x === 'string') return x
+    else if (x && typeof x === 'object') return x
+    else return concat('', x)
+  }
+}
+
+function quot (state) {
+  return state === ATTR_VALUE_SQ || state === ATTR_VALUE_DQ
+}
+
+var hasOwn = Object.prototype.hasOwnProperty
+function has (obj, key) { return hasOwn.call(obj, key) }
+
+var closeRE = RegExp('^(' + [
+  'area', 'base', 'basefont', 'bgsound', 'br', 'col', 'command', 'embed',
+  'frame', 'hr', 'img', 'input', 'isindex', 'keygen', 'link', 'meta', 'param',
+  'source', 'track', 'wbr', '!--',
+  // SVG TAGS
+  'animate', 'animateTransform', 'circle', 'cursor', 'desc', 'ellipse',
+  'feBlend', 'feColorMatrix', 'feComposite',
+  'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap',
+  'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR',
+  'feGaussianBlur', 'feImage', 'feMergeNode', 'feMorphology',
+  'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile',
+  'feTurbulence', 'font-face-format', 'font-face-name', 'font-face-uri',
+  'glyph', 'glyphRef', 'hkern', 'image', 'line', 'missing-glyph', 'mpath',
+  'path', 'polygon', 'polyline', 'rect', 'set', 'stop', 'tref', 'use', 'view',
+  'vkern'
+].join('|') + ')(?:[\.#][a-zA-Z0-9\u007F-\uFFFF_:-]+)*$')
+function selfClosing (tag) { return closeRE.test(tag) }
+
+},{"hyperscript-attribute-to-property":3}],5:[function(require,module,exports){
+const {app, h} = require('hyperapp')
+const hyperx = require('hyperx')
+const html = hyperx(h, {attrToProp: false})
+const partial = require('hyperapp-partial')
+
+const emit = app({
+    state: {},
+    mixins: [
+        partial,
+        partial.mixin('input',        require('./input')),
+        partial.mixin('synthcontrol', require('./synthcontrol')),
+        partial.mixin('sequencer',    require('./sequencer')),
+    ],
+    events: {
+        load (state, actions) {
+            setTimeout(_ => {
+                const data = localStorage.getItem('SYNTHDATA')
+                if (!data) return
+                const {voices, notes} = JSON.parse(data)
+                if (voices) emit('persist:setVoices', voices)
+                if (notes) emit('persist:setNotes', notes)
+            }, 0)
+        },
+        update (state, actions) {
+            setTimeout(_ => {
+                localStorage.setItem('SYNTHDATA', JSON.stringify({
+                    voices: emit('persist:getVoices'),
+                    notes: emit('persist:getNotes')
+                }))
+            })
+        }
+    },
+    view: (state, actions, views) => html`
+        <app-layout>
+            <app-layout-left>
+                <main-panel>
+                    ${views.sequencer.controls()}
+                    ${views.synthcontrol.voices()}
+                    ${views.synthcontrol.panel()}
+                </main-panel>
+                ${views.input.keyboard()}
+            </app-layout-left>
+            <app-layout-right>
+                ${views.sequencer.grid()}
+            </app-layout-right>
+        </app-layout>`,
+})
+
+
+},{"./input":6,"./sequencer":7,"./synthcontrol":9,"hyperapp":2,"hyperapp-partial":1,"hyperx":4}],6:[function(require,module,exports){
+
+const {h} = require('hyperapp')
+const hyperx = require('hyperx')
+const html = hyperx(h, {attrToProp: false})
+
+const KEYBOARD_KEYS = ['Z','S','X','D','C','V','G','B','H','N','J','M','Q','2','W','3','E','R','5','T','6','Y','7','U','I']
+const KEYBOARD_BLACK_KEYS = ['S', 'D', 'G', 'H', 'J', '2', '3', '5', '6', '7']
+
+const isBlack  = function (char) {
+    return KEYBOARD_BLACK_KEYS.indexOf(char) > -1
+}
+
+const noteForChar = function (char) {
+    const n = KEYBOARD_KEYS.indexOf(char)
+    return n > -1 ? n : null
+}
+
+module.exports = emit => ({
+    state: {pressed: null},
+    actions: {
+        down (state, actions, char) {
+            const note = noteForChar(char)
+            if (note === null) return
+            if (char === state.pressed) return
+            state.pressed = char
+            emit('input:attackNote', note)
+            return state
+        },
+        up (state, actions, char) {
+            const note = noteForChar(char)
+            if (note === null) return
+            if (char !== state.pressed) return
+            state.pressed = null
+            emit('input:releaseNote', note)
+            return state
+        }
+    },
+    events: {
+        load (state, actions) {
+            document.addEventListener('keydown', ev => {
+                actions.down(String.fromCharCode(ev.keyCode))
+            })
+            document.addEventListener('keyup', ev => {
+                actions.up(String.fromCharCode(ev.keyCode))
+            })
+        }
+    },
+    views: {
+        keyboard: ({pressed}, {down, up}) => html`
+            <keyboard>
+                ${KEYBOARD_KEYS.map(char => html`
+                <clav
+                    class=${
+                        (isBlack(char) ? 'black' : 'white') +
+                        (pressed === char ? ' pressed' : '')
+                    }
+                    onmousedown=${_ => down(char)}
+                    onmouseup=${_ => up(char)}
+                >
+                    <char>${char}</char>
+                </clav>
+                `)}
+            </keyboard>`
+    }
+})
+},{"hyperapp":2,"hyperx":4}],7:[function(require,module,exports){
+const {h} = require('hyperapp')
+const hyperx = require('hyperx')
+const html = hyperx(h, {attrToProp: false})
+const TIMESTEP = 100
+const NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
+const NUM_TIMES = 32
+
+function noteName (note) {
+    if (note === null) return ''
+    return NOTE_NAMES[note]
+}
+
+function isSelected ({voice, start, end}, xVoice, xTime) {
+    return voice === xVoice && ((xTime >= start && xTime <= end) || (xTime <= start && xTime >= end))
+}
+
+
+
+module.exports = emit => ({
+    state: {
+        mode: 'editing',
+        times: [...Array(NUM_TIMES).keys()].map(_ => [...Array(8).keys()].map(_ => null)),
+        selection: {
+            selecting: false,
+            start: -1,
+            end: -1,
+            voice: -1
+        },
+        playing: {
+            recordNote: null,
+            record: false,
+            interval: null,
+            time: -1,
+        }
+    },
+
+    actions: {
+
+        selection: {
+            reset: (state, actions) => {
+                state.selection.selecting = false
+                state.selection.start = -1
+                state.selection.end = -1
+                state.selection.voice = -1
+                return state
+            },
+
+            start: (state, actions, [time, voice]) => {
+                if (state.mode !== 'editing') return
+                console.log('START SELECTING')
+                state.selection.selecting = true
+                state.selection.start = time
+                state.selection.voice = voice
+                emit('sequencer:selectVoice', voice)
+                state.selection.end = time
+                return state
+            },
+
+            stop: (state, actions, time) => {
+                state.selection.selecting = false;
+                return state
+            },
+
+            set: (state, actions, time) => {
+                if (state.selection.selecting) {
+                    state.selection.end = time
+                    return state
+                }
+            },
+
+            note: (state, actions, note) => update => {
+                console.log('SET NOTE', state.selection.selecting, note)
+                if (!state.selection.selecting) return
+                const {start, end, voice} = state.selection
+                const [from, to] = start < end ? [start, end] : [end, start] 
+                for (var i = from; i <= to; i++) {
+                    state.times[i][voice] = note
+                }
+                update(state)
+                actions.selection.reset()
+            }
+        },
+        _setRecordedNote (state, actions) {
+            if (state.playing.record && state.playing.recordNote !== null) {
+                state.times[state.playing.time][emit('voices:selectedIndex?')] = state.playing.recordNote
+                return state
+            }
+        },
+        _recordAttackNote (state, actions, note) {
+            if (state.playing.record) {
+                state.playing.recordNote = note
+                return state
+            }
+        },
+        recordAttackNote (state, actions, note) {
+            actions._recordAttackNote(note),
+            actions._setRecordedNote()
+        },
+        recordReleaseNote (state, actions, note) {
+            state.playing.recordNote = null
+        },
+        _nextNote (state, actions) {
+            const currentTime = state.playing.time
+            const currentNotes = currentTime === -1 ? [...Array(8).keys()].map(_ => null) : state.times[currentTime]
+            const nextTime = (currentTime + 1) % state.times.length
+            const nextNotes = state.times[nextTime]
+            for (var i = 0; i < 8; i ++) {
+                if (currentNotes[i] !== nextNotes[i]) {
+                    if (nextNotes[i] === null) {
+                        emit('sequencer:releaseNote', {voice: i, note: currentNotes[i]})
+                    } else {
+                        emit('sequencer:attackNote', {voice: i, note: nextNotes[i]})
+                    }
+                }
+            }
+            state.playing.time = nextTime
+            return state
+        },
+        nextNote (state, actions) {
+            actions._nextNote()
+            actions._setRecordedNote()
+        },
+        startPlaying (state, actions, record) {
+            if (state.playing.interval) return
+            state.playing.interval = setInterval(actions.nextNote, TIMESTEP)
+            state.playing.record = record || false
+            return state
+        },
+        startRecording (state, actions) {
+            actions.startPlaying(true)
+        },
+        stopPlaying (state, actions) {
+            if (state.playing.interval) clearInterval(state.playing.interval)
+            state.playing.interval = null
+            state.playing.record = false
+            emit('sequencer:stopped')
+            return state
+        },
+        setSavedTimes (state, actions, times) {
+            if (!times) return
+            state.times = times
+            return state
+        },
+        setTime (state, actions, time) {
+            state.playing.time = time
+            return state
+        }
+    },
+    events:  {
+        'load': (state, actions) => {
+            window.addEventListener('mouseup', ev => actions.selection.stop())
+            window.addEventListener('keydown', ev => {
+                if (ev.keyCode === 32) actions.note(null)
+            })
+        },
+        'input:attackNote':  (state, actions, note) => {
+            console.log('INPUT ATTACK', note, state.mode, state.selection.selecting)
+            if (state.mode === 'editing') {
+                actions.selection.note(note)
+            }
+            return note
+        },
+        'input:releaseNote':  [
+            (state, actions, note) => actions.recordReleaseNote(note)
+        ],
+        'persist:getNotes': (state, actions) => state.times,
+        'persist:setNotes': (state, actions, notes) => actions.setSavedTimes(notes), 
+    },
+
+    views: {
+
+        grid: (state, actions) => html`
+            <table class="sequencer">
+                ${state.times.map((voices, time) => html`
+                <tr>
+                    <td class="time" onclick=${_ => actions.setTime(time)}>${time}</td>
+                    ${voices.map((note, voice) => html`
+                    <td
+                        class=${
+                            (isSelected(state.selection, voice, time) ? 'selected' : '') +
+                            (state.playing.time === time ? ' playing' : '')
+                        }
+                        onmousedown=${ev => {
+                            ev.preventDefault(true)
+                            actions.selection.start([time, voice])
+                        }}
+                        onmouseover=${ev => {
+                            ev.preventDefault(true)
+                            actions.selection.set(time)
+                        }}
+                    >
+                        ${noteName(note)}
+                    </td>
+                    `)}
+                </tr>
+                `)}
+            </table>`,
+        
+        controls: (state, actions) => html`
+            <span>
+                <button class=${!!state.playing.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
+                <button class=${!!state.playing.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>
+                <button onmousedown=${actions.stopPlaying}>Stop</button>
+                <button onmousedown=${_ => actions.setNote(null)}>X</button>
+            </span>`,
+    }
+})
+
+},{"hyperapp":2,"hyperx":4}],8:[function(require,module,exports){
+
+const TUNING_FREQ = 440;
+const TUNING_NOTE = 69;
+const OSCILLATOR_TYPES = ['sawtooth', 'square', 'triangle', 'sine']
+const FILTER_TYPES = ['bandpass', 'lowpass', 'highpass']  
+const DEFAULTS = {
+  octave: 4,
+  oscillatorType: 'triangle',
+  ampLevel: 0.3,
+  sustainLevel: 0.6,
+  attackTime: 0.02,
+  decayTime: 0.04,
+  releaseTime: 0.4,
+  filterType: 'lowpass',
+  filterCutoff: 7600,
+  filterQ: 10,
+}
+
+function noteToHz (note, octave) {
+  return Math.exp ((octave * 12 + note  - TUNING_NOTE) * Math.log(2) / 12) * TUNING_FREQ;
+}
+
+
+function fillDefaults(props) {
+    props = props || {}
+    return Object.assign({}, DEFAULTS, props)
+}
+
+
+
+class Synth {  
+  constructor(audioContext, props) {
+    props = fillDefaults(props)
+
+    this._ctx = audioContext
+
+    this._osc = this._ctx.createOscillator()
+    this._osc.type = props.oscillatorType
+
+    this._flt = this._ctx.createBiquadFilter()
+    this._flt.type = props.filterType
+    this._flt.frequency.value = props.filterCutoff
+    this._flt.Q.value = props.filterQ
+
+    this._env = this._ctx.createGain()
+    this._env.gain.value = 0
+
+    this._amp = this._ctx.createGain()
+    this._amp.gain.value = props.ampLevel
+    
+    this._osc.connect(this._flt)
+    this._flt.connect(this._env)
+    this._env.connect(this._amp)
+    this._amp.connect(this._ctx.destination)
+    this._osc.start()
+
+    this.octave = props.octave
+    this.attackTime = props.attackTime
+    this.decayTime = props.decayTime
+    this.releaseTime = props.releaseTime
+    this.sustainLevel = props.sustainLevel
+    this._playing = false
+  }
+  
+  get oscillatorType () { return this._osc.type }
+  set oscillatorType (x) { this._osc.type = x }
+
+  get ampLevel () { return this._amp.gain.value }
+  set ampLevel (x) { this._amp.gain.value = x }
+
+  get filterType () { return this._flt.type }
+  set filterType (t) { this._flt.type = t }
+
+  get filterCutoff () { return this._flt.frequency.value }
+  set filterCutoff (v) { this._flt.frequency.value = v }
+
+  get filterQ () { return this._flt.Q.value }
+  set filterQ (v) { this._flt.Q.value = v }
+
+
+  attack (note) {
+    if (this._playing === note) return
+    this._playing = note
+    const freq = noteToHz(note, this.octave)
+    var t = this._ctx.currentTime
+    this._osc.frequency.cancelScheduledValues(t)
+    this._env.gain.cancelScheduledValues(t)
+    t += 0.01
+    this._osc.frequency.linearRampToValueAtTime(freq, t)
+    this._env.gain.linearRampToValueAtTime(0, t)
+    t += +this.attackTime
+    this._env.gain.linearRampToValueAtTime(1, t)
+    t += +this.decayTime
+    this._env.gain.linearRampToValueAtTime(+this.sustainLevel, t)
+  }
+  
+  release (note) {
+    if (this._playing !== note) return
+    this._playing = null
+    var t = this._ctx.currentTime + 0.01
+    this._env.gain.cancelScheduledValues(t)
+    t += +this.releaseTime
+    this._env.gain.linearRampToValueAtTime(0, t)
+  }
+  
+  stop () {
+    if (this._playing === null) return
+    this.release(this._playing)
+  }
+  
+}
+
+
+module.exports = {
+    Synth,
+    OSCILLATOR_TYPES,
+    FILTER_TYPES
+}
+},{}],9:[function(require,module,exports){
+const {h} = require('hyperapp')
+const hyperx = require('hyperx')
+const html = hyperx(h, {attrToProp: false})
+
+const {Synth, OSCILLATOR_TYPES, FILTER_TYPES} = require('./synth')
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+const Slider = ({value, set, min, max, step}) => html`
+<input
+    type="range"
+    min=${min || 0}
+    max=${max}
+    step=${step || "any"}
+    value=${value}
+    oninput=${ev => set(ev.currentTarget.value)}
+/>`
+
+
+const ButtonOptions = ({options, value, set}) => html`
+<span>
+    ${options.map(o => html`
+        <button
+            class=${value === o ? 'active' :'' }
+            onclick=${_ => set(o)}
+        >
+            ${o}
+        </button>
+    `)}
+</span>`
+
+
+const VOICE_PROPS = [
+    'oscillatorType',
+    'octave',
+    'filterType',
+    'filterCutoff',
+    'filterQ',
+    'attackTime',
+    'decayTime',
+    'releaseTime',
+    'sustainLevel',
+    'ampLevel',
+]
+
+module.exports = emit => ({
+    state: {
+        selectedVoice: 0,
+        voices: [...Array(8).keys()].map(_ => new Synth(audioContext))
+    },
+
+    actions: {
+        selectVoice: (state, actions, index) => ({selectedVoice: index}),
+
+        stopAll: (state, actions) => {
+            state.voices.forEach(synth => synth.stop())
+        },
+
+        setProp: (state, actions, [name, val]) => {
+            state.voices[state.selectedVoice][name] = val
+            return state //cause update.
+        },
+
+        attackNote: (state, actions, [voice, note]) => {
+            state.voices[voice].attack(note)
+        },
+
+        releaseNote: (state, actions, [voice, note]) => {
+            state.voices[voice].release(note)
+        }
+    },
+
+    events: {
+        'persist:getVoices': (state) => {
+            return state.voices.map(voice => {
+                const props = {}
+                VOICE_PROPS.forEach(name => {
+                    props[name] = voice[name]
+                })
+                return props
+            })
+        },
+        'persist:setVoices': (state, actions, saved) => {
+            saved.forEach((savedProps, i) => {
+                VOICE_PROPS.forEach(propName => {
+                    state.voices[i][propName] = savedProps[propName]
+                })
+            })
+        },
+        'sequencer:stopped': (state, actions) => actions.stopAll(),
+        'sequencer:selectVoice': (state, actions, voice) => actions.selectVoice(voice),
+        'sequencer:attackNote': (state, actions, {voice, note}) => actions.attackNote([voice, note]),
+        'sequencer:releaseNote': (state, actions, {voice, note}) => actions.releaseNote([voice, note]),
+        'input:attackNote': (state, actions, note) => actions.attackNote([state.selectedVoice, note]),
+        'input:releaseNote': (state, actions, note) => actions.releaseNote([state.selectedVoice, note]),
+    },
+    views: {
+
+        voices: (state, actions) => html`
+            <voice-selector>
+                ${state.voices.map((v, i) => html`
+                <button
+                    class=${state.selectedVoice === i ? 'active' : ''}
+                    onmousedown=${_ => actions.selectVoice(i)}
+                >
+                    Voice ${i + 1}
+                </button>
+                `)}
+            </voice-selector>`,
+
+        panel: (state, actions) => {
+            const PropSlider = (props) => Slider(Object.assign({
+                set: v => actions.setProp([props.name, v]),
+                value: state.voices[state.selectedVoice][props.name]
+            }, props))
+
+            const PropButtons = (props) => ButtonOptions(Object.assign({
+                set: v => actions.setProp([props.name, v]),
+                value: state.voices[state.selectedVoice][props.name]
+            }, props))
+
+            return html`<synth-panel>
+                <div class="col-1">
+                    <p>
+                        <label>Oscillator:</label>
+                        ${PropButtons({name: 'oscillatorType', options: OSCILLATOR_TYPES})}
+                    </p>
+                    <p>
+                        <label>Octave:</label>
+                        ${PropSlider({name: 'octave', min:1, max:6, step: 1})}
+                    </p>
+                    <p>
+                        <label>Filter:</label>
+                        ${PropButtons({name: 'filterType', options: FILTER_TYPES})}
+                    </p>
+                    <p>
+                        <label>Cutoff</label>
+                        ${PropSlider({name: 'filterCutoff', min: 60, max: 7600})}
+                    </p>
+                    <p>
+                        <label>Resonance</label>
+                        ${PropSlider({name: 'filterQ', max: 20})}
+                    </p>
+                </div>
+                <div class="col-2">
+                    <p>
+                        <label>Attack Time:</label>
+                        ${PropSlider({name: 'attackTime', max: 0.2})}
+                    </p>
+                    <p>
+                        <label>Decay Time:</label>
+                        ${PropSlider({name: 'decayTime', max: 0.2})}
+                    </p>
+                    <p>
+                        <label>Release Time:</label>
+                        ${PropSlider({name: 'releaseTime', max: 1.0})}
+                    </p>
+                    <p>
+                        <label>Sustain Level:</label>
+                        ${PropSlider({name: 'sustainLevel', max: 1.0})}
+                    </p>
+                    <p>
+                        <label>Amp Level:</label>
+                        ${PropSlider({name: 'ampLevel', max: 1.0})}
+                    </p>
+                </div>
+            </synth-panel>`
+        },
+    }
+})
+},{"./synth":8,"hyperapp":2,"hyperx":4}]},{},[5]);
