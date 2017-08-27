@@ -87,12 +87,12 @@ module.exports = emit => ({
                 })
             })
         },
-        'sequencer:stopped': (state, actions) => actions.stopAll(),
-        'sequencer:selectVoice': (state, actions, voice) => actions.selectVoice(voice),
-        'sequencer:attackNote': (state, actions, {voice, note}) => actions.attackNote([voice, note]),
-        'sequencer:releaseNote': (state, actions, {voice, note}) => actions.releaseNote([voice, note]),
-        'input:attackNote': (state, actions, note) => actions.attackNote([state.selectedVoice, note]),
-        'input:releaseNote': (state, actions, note) => actions.releaseNote([state.selectedVoice, note]),
+        'sequencer:stopped': (state, actions) => {actions.stopAll()},
+        'sequencer:selectVoice': (state, actions, voice) => {actions.selectVoice(voice)},
+        'sequencer:attackNote': (state, actions, {voice, note}) => {actions.attackNote([voice, note])},
+        'sequencer:releaseNote': (state, actions, {voice, note}) => {actions.releaseNote([voice, note])},
+        'input:attackNote': (state, actions, note) => {actions.attackNote([state.selectedVoice, note])},
+        'input:releaseNote': (state, actions, note) => {actions.releaseNote([state.selectedVoice, note])},
     },
     views: {
 

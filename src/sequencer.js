@@ -47,7 +47,6 @@ module.exports = emit => ({
 
             start: (state, actions, [time, voice]) => {
                 if (state.mode !== 'editing') return
-                console.log('START SELECTING')
                 state.selection.selecting = true
                 state.selection.start = time
                 state.selection.voice = voice
@@ -69,8 +68,7 @@ module.exports = emit => ({
             },
 
             note: (state, actions, note) => update => {
-                console.log('SET NOTE', state.selection.selecting, note)
-                if (!state.selection.selecting) return
+                if (state.selection.start === -1) return
                 const {start, end, voice} = state.selection
                 const [from, to] = start < end ? [start, end] : [end, start] 
                 for (var i = from; i <= to; i++) {
@@ -154,7 +152,6 @@ module.exports = emit => ({
             })
         },
         'input:attackNote':  (state, actions, note) => {
-            console.log('INPUT ATTACK', note, state.mode, state.selection.selecting)
             if (state.mode === 'editing') {
                 actions.selection.note(note)
             }

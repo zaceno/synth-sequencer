@@ -473,7 +473,6 @@ module.exports = emit => ({
 
             start: (state, actions, [time, voice]) => {
                 if (state.mode !== 'editing') return
-                console.log('START SELECTING')
                 state.selection.selecting = true
                 state.selection.start = time
                 state.selection.voice = voice
@@ -495,8 +494,7 @@ module.exports = emit => ({
             },
 
             note: (state, actions, note) => update => {
-                console.log('SET NOTE', state.selection.selecting, note)
-                if (!state.selection.selecting) return
+                if (state.selection.start === -1) return
                 const {start, end, voice} = state.selection
                 const [from, to] = start < end ? [start, end] : [end, start] 
                 for (var i = from; i <= to; i++) {
@@ -580,7 +578,6 @@ module.exports = emit => ({
             })
         },
         'input:attackNote':  (state, actions, note) => {
-            console.log('INPUT ATTACK', note, state.mode, state.selection.selecting)
             if (state.mode === 'editing') {
                 actions.selection.note(note)
             }
@@ -841,12 +838,12 @@ module.exports = emit => ({
                 })
             })
         },
-        'sequencer:stopped': (state, actions) => actions.stopAll(),
-        'sequencer:selectVoice': (state, actions, voice) => actions.selectVoice(voice),
-        'sequencer:attackNote': (state, actions, {voice, note}) => actions.attackNote([voice, note]),
-        'sequencer:releaseNote': (state, actions, {voice, note}) => actions.releaseNote([voice, note]),
-        'input:attackNote': (state, actions, note) => actions.attackNote([state.selectedVoice, note]),
-        'input:releaseNote': (state, actions, note) => actions.releaseNote([state.selectedVoice, note]),
+        'sequencer:stopped': (state, actions) => {actions.stopAll()},
+        'sequencer:selectVoice': (state, actions, voice) => {actions.selectVoice(voice)},
+        'sequencer:attackNote': (state, actions, {voice, note}) => {actions.attackNote([voice, note])},
+        'sequencer:releaseNote': (state, actions, {voice, note}) => {actions.releaseNote([voice, note])},
+        'input:attackNote': (state, actions, note) => {actions.attackNote([state.selectedVoice, note])},
+        'input:releaseNote': (state, actions, note) => {actions.releaseNote([state.selectedVoice, note])},
     },
     views: {
 
