@@ -15,10 +15,10 @@ const noteForChar = function (char) {
     return n > -1 ? n : null
 }
 
-module.exports = emit => ({
+module.exports = {
     state: {pressed: null},
     actions: {
-        down (state, actions, char) {
+        down (state, actions, char, emit) {
             const note = noteForChar(char)
             if (note === null) return
             if (char === state.pressed) return
@@ -26,7 +26,7 @@ module.exports = emit => ({
             emit('input:attackNote', note)
             return state
         },
-        up (state, actions, char) {
+        up (state, actions, char, emit) {
             const note = noteForChar(char)
             if (note === null) return
             if (char !== state.pressed) return
@@ -35,15 +35,13 @@ module.exports = emit => ({
             return state
         }
     },
-    events: {
-        load (state, actions) {
-            document.addEventListener('keydown', ev => {
-                actions.down(String.fromCharCode(ev.keyCode))
-            })
-            document.addEventListener('keyup', ev => {
-                actions.up(String.fromCharCode(ev.keyCode))
-            })
-        }
+    init (state, actions) {
+        document.addEventListener('keydown', ev => {
+            actions.down(String.fromCharCode(ev.keyCode))
+        })
+        document.addEventListener('keyup', ev => {
+            actions.up(String.fromCharCode(ev.keyCode))
+        })
     },
     views: {
         keyboard: ({pressed}, {down, up}) => html`
@@ -62,4 +60,4 @@ module.exports = emit => ({
                 `)}
             </keyboard>`
     }
-})
+}

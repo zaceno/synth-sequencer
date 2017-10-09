@@ -5,8 +5,9 @@
   "description": "",
   "main": "dist/index.html",
   "dependencies": {
-    "hyperapp": "^0.12.0",
-    "hyperapp-partial": "^0.1.0",
+    "hyperapp": "hyperapp/hyperapp#modules",
+    "hyperapp-events": "0.0.2",
+    "hyperapp-module-views": "0.0.2",
     "hyperx": "^2.3.0"
   },
   "devDependencies": {

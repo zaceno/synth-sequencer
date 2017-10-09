@@ -43,7 +43,7 @@ const VOICE_PROPS = [
     'ampLevel',
 ]
 
-module.exports = emit => ({
+module.exports = {
     state: {
         selectedVoice: 0,
         voices: [...Array(8).keys()].map(_ => new Synth(audioContext))
@@ -167,4 +167,4 @@ module.exports = emit => ({
             </synth-panel>`
         },
     }
-})
+}

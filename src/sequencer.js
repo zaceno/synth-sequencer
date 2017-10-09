@@ -10,83 +10,74 @@ function noteName (note) {
     return NOTE_NAMES[note]
 }
 
-function isSelected ({voice, start, end}, xVoice, xTime) {
-    return voice === xVoice && ((xTime >= start && xTime <= end) || (xTime <= start && xTime >= end))
+function isSelected ({voice, selStart, selEnd}, xVoice, xTime) {
+    return voice === xVoice && ((xTime >= selStart && xTime <= selEnd) || (xTime <= selStart && xTime >= selEnd))
 }
 
 
 
-module.exports = emit => ({
+module.exports = {
     state: {
         mode: 'editing',
         times: [...Array(NUM_TIMES).keys()].map(_ => [...Array(8).keys()].map(_ => null)),
-        selection: {
-            selecting: false,
-            start: -1,
-            end: -1,
-            voice: -1
-        },
-        playing: {
-            recordNote: null,
-            record: false,
-            interval: null,
-            time: -1,
-        }
+        selecting: false,
+        selStart: -1,
+        selEnd: -1,
+        voice: -1,
+        recordNote: null,
+        record: false,
+        interval: null,
+        time: -1,
     },
 
     actions: {
 
-        selection: {
-            reset: (state, actions) => {
-                state.selection.selecting = false
-                state.selection.start = -1
-                state.selection.end = -1
-                state.selection.voice = -1
-                return state
-            },
+        resetSelection: (state, actions) => ({
+            selecting: false,
+            selStart: -1,
+            selEnd: -1,
+            voice: -1
+        }),
 
-            start: (state, actions, [time, voice]) => {
-                if (state.mode !== 'editing') return
-                state.selection.selecting = true
-                state.selection.start = time
-                state.selection.voice = voice
-                emit('sequencer:selectVoice', voice)
-                state.selection.end = time
-                return state
-            },
-
-            stop: (state, actions, time) => {
-                state.selection.selecting = false;
-                return state
-            },
-
-            set: (state, actions, time) => {
-                if (state.selection.selecting) {
-                    state.selection.end = time
-                    return state
-                }
-            },
-
-            note: (state, actions, note) => update => {
-                if (state.selection.start === -1) return
-                const {start, end, voice} = state.selection
-                const [from, to] = start < end ? [start, end] : [end, start] 
-                for (var i = from; i <= to; i++) {
-                    state.times[i][voice] = note
-                }
-                update(state)
-                actions.selection.reset()
-            }
+        startSelection: (state, actions, [time, voice], emit) => update => {
+            if (state.mode !== 'editing') return
+            update({
+                selecting: true,
+                selStart: time,
+                voice: voice,
+                selEnd: time,
+            })
+            emit('sequencer:selectVoice', voice)
         },
-        _setRecordedNote (state, actions) {
-            if (state.playing.record && state.playing.recordNote !== null) {
-                state.times[state.playing.time][emit('voices:selectedIndex?')] = state.playing.recordNote
+
+        stopSelection: (state, actions, time) => ({selecting: false}),
+
+        setSelection: (state, actions, time) => update => {
+            if (!state.selecting) return
+            update({selEnd: time})
+        },
+
+        setNoteOnSelection: (state, actions, note) => update => {
+            if (state.selStart === -1) return
+            const {selStart, selEnd, voice} = state
+            const [from, to] = selStart < selEnd ? [selStart, selEnd] : [selEnd, selStart] 
+            for (var i = from; i <= to; i++) {
+                state.times[i][voice] = note
+            }
+            update(state)
+            actions.resetSelection()
+        },
+
+        _setRecordedNote (state, actions, data, emit) {
+            if (state.record && state.recordNote !== null) {
+                state.times[state.time][emit('voices:selectedIndex?')] = state.recordNote
                 return state
             }
         },
+
         _recordAttackNote (state, actions, note) {
-            if (state.playing.record) {
-                state.playing.recordNote = note
+            if (state.record) {
+                state.recordNote = note
                 return state
             }
         },
@@ -95,10 +86,10 @@ module.exports = emit => ({
             actions._setRecordedNote()
         },
         recordReleaseNote (state, actions, note) {
-            state.playing.recordNote = null
+            state.recordNote = null
         },
-        _nextNote (state, actions) {
-            const currentTime = state.playing.time
+        _nextNote (state, actions, data, emit) {
+            const currentTime = state.time
             const currentNotes = currentTime === -1 ? [...Array(8).keys()].map(_ => null) : state.times[currentTime]
             const nextTime = (currentTime + 1) % state.times.length
             const nextNotes = state.times[nextTime]
@@ -111,7 +102,7 @@ module.exports = emit => ({
                     }
                 }
             }
-            state.playing.time = nextTime
+            state.time = nextTime
             return state
         },
         nextNote (state, actions) {
@@ -119,18 +110,18 @@ module.exports = emit => ({
             actions._setRecordedNote()
         },
         startPlaying (state, actions, record) {
-            if (state.playing.interval) return
-            state.playing.interval = setInterval(actions.nextNote, TIMESTEP)
-            state.playing.record = record || false
+            if (state.interval) return
+            state.interval = setInterval(actions.nextNote, TIMESTEP)
+            state.record = record || false
             return state
         },
         startRecording (state, actions) {
             actions.startPlaying(true)
         },
-        stopPlaying (state, actions) {
-            if (state.playing.interval) clearInterval(state.playing.interval)
-            state.playing.interval = null
-            state.playing.record = false
+        stopPlaying (state, actions, data, emit) {
+            if (state.interval) clearInterval(state.interval)
+            state.interval = null
+            state.record = false
             emit('sequencer:stopped')
             return state
         },
@@ -140,20 +131,20 @@ module.exports = emit => ({
             return state
         },
         setTime (state, actions, time) {
-            state.playing.time = time
+            state.time = time
             return state
         }
     },
+    init (state, actions) {
+        window.addEventListener('mouseup', ev => actions.stopSelection())
+        window.addEventListener('keydown', ev => {
+            if (ev.keyCode === 32) actions.note(null)
+        })
+    },
     events:  {
-        'load': (state, actions) => {
-            window.addEventListener('mouseup', ev => actions.selection.stop())
-            window.addEventListener('keydown', ev => {
-                if (ev.keyCode === 32) actions.note(null)
-            })
-        },
         'input:attackNote':  (state, actions, note) => {
             if (state.mode === 'editing') {
-                actions.selection.note(note)
+                actions.setNoteOnSelection(note)
             }
             return note
         },
@@ -174,16 +165,16 @@ module.exports = emit => ({
                     ${voices.map((note, voice) => html`
                     <td
                         class=${
-                            (isSelected(state.selection, voice, time) ? 'selected' : '') +
-                            (state.playing.time === time ? ' playing' : '')
+                            (isSelected(state, voice, time) ? 'selected' : '') +
+                            (state.time === time ? ' playing' : '')
                         }
                         onmousedown=${ev => {
                             ev.preventDefault(true)
-                            actions.selection.start([time, voice])
+                            actions.startSelection([time, voice])
                         }}
                         onmouseover=${ev => {
                             ev.preventDefault(true)
-                            actions.selection.set(time)
+                            actions.setSelection(time)
                         }}
                     >
                         ${noteName(note)}
@@ -195,10 +186,10 @@ module.exports = emit => ({
         
         controls: (state, actions) => html`
             <span>
-                <button class=${!!state.playing.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
-                <button class=${!!state.playing.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>
+                <button class=${!!state.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
+                <button class=${!!state.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>
                 <button onmousedown=${actions.stopPlaying}>Stop</button>
                 <button onmousedown=${_ => actions.setNote(null)}>X</button>
             </span>`,
     }
-})
+}

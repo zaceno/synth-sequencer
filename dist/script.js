@@ -1,12 +1,105 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function (global){
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).partial=e()}}(function(){return function e(t,n,r){function o(f,s){if(!n[f]){if(!t[f]){var u="function"==typeof require&&require;if(!s&&u)return u(f,!0);if(i)return i(f,!0);var a=new Error("Cannot find module '"+f+"'");throw a.code="MODULE_NOT_FOUND",a}var c=n[f]={exports:{}};t[f][0].call(c.exports,function(e){var n=t[f][1][e];return o(n||e)},c,c.exports,e,t,n,r)}return n[f].exports}for(var i="function"==typeof require&&require,f=0;f<r.length;f++)o(r[f]);return o}({1:[function(e,t,n){const r=(e,t,n)=>r=>n({[e]:Object.assign(t[e],r)}),o=(e,t)=>(n,o,i)=>f=>{const s=t(n[e],o[e],i),u=r(e,n,f);return"function"==typeof s?s(u):u(s)},i=(e,t)=>{const n={};for(let r in t)n[r]=("function"==typeof t[r]?o:i)(e,t[r]);return n},f=(e,t)=>(n,r,o)=>t(n[e],r[e],o),s=(e,t)=>(n,r,o,...i)=>t(n[e],r[e],o[e],...i),u=e=>{const t={};return{events:{render:(e,n,r)=>(e,n)=>r(e,n,t),"partial:render":(e,n,[r,o])=>r(e,n,t,...o),"partial:register":(n,r,[o,i,f])=>{t[o]=t[o]||{},t[o][i]=((...t)=>e("partial:render",[f,t]))}}}};u.mixin=((e,t)=>n=>{const r=t(n),o={state:{[e]:{}},actions:{[e]:{}},events:{}};o.state[e]=r.state||{},o.actions[e]=i(e,r.actions||{});for(let t in r.events||{})"function"==typeof r.events[t]?o.events[t]=f(e,r.events[t]):o.events[t]=r.events[t].map(t=>f(e,t));for(let t in r.views||{})n("partial:register",[e,t,s(e,r.views[t])]);return o}),t.exports=u},{}]},{},[1])(1)});
+var mapObj = function (obj, fn) {
+    var into = {}
+    for (var name in obj) {
+        into[name] = fn(name, obj[name])
+    }
+    return into
+}
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+var decorateActionTree = function (opts, emit) {
+    opts.modules = mapObj(opts.modules, function(scope, mod) {
+        return decorateActionTree(mod, emit)
+    })
+    opts.actions = mapObj(opts.actions, function (name, fn) {
+        return function (state, actions, data) {
+            return fn(state, actions, data, emit)
+        }
+    })
+    return opts
+}
+
+var mergeHandlers = function (a, b) {
+    var c = mapObj(a, function (name, handler) { return handler }) 
+    for (var name in b) {
+        c[name] = [].concat((c[name] || []), b[name])
+    }
+    return c
+}
+
+var scopeHandlers = function (scope, unscopedHandlers) {
+    return mapObj(unscopedHandlers, function (name, handlerArray) {
+        return handlerArray.map(function (h) {
+            return function (state, actions, data) {
+                return h(state[scope], actions[scope], data)
+            }
+        })
+    })
+}
+
+var collectHandlers = function (opts) {
+    var handlers = {}
+    for (var scope in opts.modules || {}) {
+        handlers = mergeHandlers(handlers, scopeHandlers(scope, collectHandlers(opts.modules[scope])))
+    }
+    handlers = mergeHandlers(handlers, opts.events)
+    return handlers
+}
+
+var makeEmitter = function (handlers) {
+    return function (state, actions, data) {
+        return function () {
+            return (handlers[data[0]] || []).reduce(function (ret, fn) {
+                return fn(state, actions, data[1])
+            }, null)
+        }
+    }
+}
+
+module.exports = function (app) {
+    return function (opts) {
+        var actions
+        var emit = function (name, data) {  return actions.__emit([name, data]) }
+        opts = decorateActionTree(opts, emit)
+        opts.actions.__emit = makeEmitter(collectHandlers(opts))
+        actions = app(opts)
+        return actions
+    }
+}
 },{}],2:[function(require,module,exports){
-!function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n(e.hyperapp={})}(this,function(e){"use strict";function n(e,n){var t,o=[];for(r=arguments.length;r-- >2;)a.push(arguments[r]);for(;a.length;)if(Array.isArray(t=a.pop()))for(r=t.length;r--;)a.push(t[r]);else null!=t&&!0!==t&&!1!==t&&("number"==typeof t&&(t+=""),o.push(t));return"string"==typeof e?{tag:e,data:n||{},children:o}:e(n,o)}function t(e){function n(e,t,r){Object.keys(t||[]).map(function(o){var u=t[o],f=r?r+"."+o:o;"function"==typeof u?e[o]=function(e){i("action",{name:f,data:e});var n=i("resolve",u(p,m,e));return"function"==typeof n?n(a):a(n)}:n(e[o]||(e[o]={}),u,f)})}function t(e){for(x=v(w,x,h,h=i("render",y)(p,m),g=!g);e=o.pop();)e()}function r(){y&&!g&&requestAnimationFrame(t,g=!g)}function a(e){return e&&(e=i("update",u(p,e)))&&r(p=e),p}function i(e,n){return(b[e]||[]).map(function(e){var t=e(p,m,n);null!=t&&(n=t)}),n}function u(e,n){var t={};for(var r in e)t[r]=e[r];for(var r in n)t[r]=n[r];return t}function f(e){if(e&&(e=e.data))return e.key}function c(e,n){if("string"==typeof e)var t=document.createTextNode(e);else{var t=(n=n||"svg"===e.tag)?document.createElementNS("http://www.w3.org/2000/svg",e.tag):document.createElement(e.tag);e.data&&e.data.oncreate&&o.push(function(){e.data.oncreate(t)});for(var r in e.data)l(t,r,e.data[r]);for(var r=0;r<e.children.length;)t.appendChild(c(e.children[r++],n))}return t}function l(e,n,t,r){if("key"===n);else if("style"===n)for(var a in u(r,t=t||{}))e.style[a]=t[a]||"";else{try{e[n]=t}catch(e){}"function"!=typeof t&&(t?e.setAttribute(n,t):e.removeAttribute(n))}}function d(e,n,t){for(var r in u(n,t)){var a=t[r],i="value"===r||"checked"===r?e[r]:n[r];a!==i&&l(e,r,a,i)}t&&t.onupdate&&o.push(function(){t.onupdate(e,n)})}function s(e,n,t){t&&t.onremove?t.onremove(n):e.removeChild(n)}function v(e,n,t,r,a,o){if(null==t)n=e.insertBefore(c(r,a),n);else if(null!=r.tag&&r.tag===t.tag){d(n,t.data,r.data),a=a||"svg"===r.tag;for(var i=r.children.length,u=t.children.length,l={},p=[],h={},g=0;g<u;g++){var y=p[g]=n.childNodes[g],m=t.children[g],b=f(m);null!=b&&(l[b]=[y,m])}for(var g=0,k=0;k<i;){var y=p[g],m=t.children[g],w=r.children[k],b=f(m);if(h[b])g++;else{var x=f(w),A=l[x]||[];null==x?(null==b&&(v(n,y,m,w,a),k++),g++):(b===x?(v(n,A[0],A[1],w,a),g++):A[0]?(n.insertBefore(A[0],y),v(n,A[0],A[1],w,a)):v(n,y,null,w,a),k++,h[x]=w)}}for(;g<u;){var m=t.children[g],b=f(m);null==b&&s(n,p[g],m.data),g++}for(var g in l){var A=l[g],j=A[1];h[j.data.key]||s(n,A[0],j.data)}}else n&&r!==n.nodeValue&&(n=e.insertBefore(c(r,a),o=n),s(e,o,t.data));return n}for(var p,h,g,y=e.view,m={},b={},k=e.mixins||[],w=e.root||document.body,x=w.children[0],A=0;A<=k.length;A++){var j=k[A]?k[A](i):e;Object.keys(j.events||[]).map(function(e){b[e]=(b[e]||[]).concat(j.events[e])}),n(m,j.actions),p=u(p,j.state)}return r((h=i("load",x))===x&&(h=x=null)),i}var r,a=[],o=[];e.h=n,e.app=t});
+module.exports = function (app) {
+    function wireView (state, actions, boundViews, fn) {
+        return function (props, children) {
+            return fn(state, actions, boundViews, props, children)
+        }
+    }
+    
+    function getWiredViews(state, actions, opts) {
+        var views = {}
+        for (var scope in opts.modules || {}) {
+            views[scope] = getWiredViews(state[scope], actions[scope], opts.modules[scope])
+        }
+        for (var name in opts.views || {}) {
+            views[name] = wireView(state, actions, views, opts.views[name])
+        }
+        return views
+    }
+
+    return function (opts) {
+        var origView = opts.view
+        if (origView) {
+            opts.view = function (state, actions) {
+                return origView(state, actions, getWiredViews(state, actions, opts))
+            }
+        }
+        return app(opts)
+    }
+}
 
 },{}],3:[function(require,module,exports){
+!function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n(e.hyperapp={})}(this,function(e){"use strict";function n(e,n){var t,i=[];for(o=arguments.length;o-- >2;)r.push(arguments[o]);for(;r.length;)if(Array.isArray(t=r.pop()))for(o=t.length;o--;)r.push(t[o]);else null!=t&&!0!==t&&!1!==t&&i.push("number"==typeof t?t+="":t);return"string"==typeof e?{tag:e,props:n||{},children:i}:e(n||{},i)}function t(e){function o(){b&&!m&&requestAnimationFrame(r,m=!m)}function r(){u(N=g(A,N,x,x=b(k,w),m=!m))}function u(e){for(;e=i.pop();)e()}function f(e,n,t){c(n,e.state),p(t,n,e.actions),e.init&&i.push(function(){e.init(n,t)}),e.modules&&Object.keys(e.modules).map(function(o){f(e.modules[o],n[o]={},t[o]={})})}function p(e,n,t){function r(e){return"function"==typeof e?r(e(n)):e&&o(c(n,e)),n}Object.keys(t||{}).map(function(o){"function"==typeof t[o]?e[o]=function(i){return"function"==typeof(i=t[o](n,e,i))?i(r):r(i)}:p(e[o]={},n[o]||(n[o]={}),t[o])})}function c(e,n){for(var t in n)e[t]=n[t];return e}function s(e,n,t){return c(c({},e),n)}function l(e,t){return e&&n(e.tagName.toLowerCase(),{},t.call(e.childNodes,function(e){return 3===e.nodeType?e.nodeValue:l(e,t)}))}function a(e,n){if("string"==typeof e)var t=document.createTextNode(e);else{var t=(n=n||"svg"===e.tag)?document.createElementNS("http://www.w3.org/2000/svg",e.tag):document.createElement(e.tag);e.props&&e.props.oncreate&&i.push(function(){e.props.oncreate(t)});for(var o=0;o<e.children.length;)t.appendChild(a(e.children[o++],n));for(var o in e.props)d(t,o,e.props[o])}return t}function d(e,n,t,o){if("key"===n);else if("style"===n)for(var n in s(o,t=t||{}))e.style[n]=t[n]||"";else{try{e[n]=t}catch(e){}"function"!=typeof t&&(t?e.setAttribute(n,t):e.removeAttribute(n))}}function h(e,n,t){for(var o in s(n,t)){var r=t[o],u="value"===o||"checked"===o?e[o]:n[o];r!==u&&d(e,o,r,u)}t&&t.onupdate&&i.push(function(){t.onupdate(e,n)})}function v(e,n,t){function o(){e.removeChild(n)}t&&t.onremove&&"function"==typeof(t=t.onremove(n))?t(o):o()}function y(e){if(e&&e.props)return e.props.key}function g(e,n,t,o,r,i){if(null==t)n=e.insertBefore(a(o,r),n);else if(null!=o.tag&&o.tag===t.tag){h(n,t.props,o.props),r=r||"svg"===o.tag;for(var u=o.children.length,f=t.children.length,p={},c=[],s={},l=0;l<f;l++){var d=c[l]=n.childNodes[l],m=t.children[l],b=y(m);null!=b&&(p[b]=[d,m])}for(var l=0,k=0;k<u;){var d=c[l],m=t.children[l],w=o.children[k],b=y(m);if(s[b])l++;else{var A=y(w),N=p[A]||[];null==A?(null==b&&(g(n,d,m,w,r),k++),l++):(b===A?(g(n,N[0],N[1],w,r),l++):N[0]?(n.insertBefore(N[0],d),g(n,N[0],N[1],w,r)):g(n,d,null,w,r),k++,s[A]=w)}}for(;l<f;){var m=t.children[l],b=y(m);null==b&&v(n,c[l],m.props),l++}for(var l in p){var N=p[l],x=N[1];s[x.props.key]||v(n,N[0],x.props)}}else n&&o!==n.nodeValue&&("string"==typeof o&&"string"==typeof t?n.nodeValue=o:(n=e.insertBefore(a(o,r),i=n),v(e,i,t.props)));return n}if("function"==typeof e)return e(t);var m,b=e.view,k={},w={},A=e.root||document.body,N=A.children[0],x=l(N,[].map);return o(u(f(e,k,w))),w}var o,r=[],i=[];e.h=n,e.app=t});
+
+},{}],4:[function(require,module,exports){
 module.exports = attributeToProperty
 
 var transform = {
@@ -27,7 +120,7 @@ function attributeToProperty (h) {
   }
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var attrToProp = require('hyperscript-attribute-to-property')
 
 var VAR = 0, TEXT = 1, OPEN = 2, CLOSE = 3, ATTR = 4
@@ -116,6 +209,9 @@ module.exports = function (h, opts) {
               // https://html.spec.whatwg.org/multipage/infrastructure.html#boolean-attributes
               // empty string is falsy, not well behaved value in browser
               cur[1][key] = key.toLowerCase()
+            }
+            if (parts[i][0] === CLOSE) {
+              i--
             }
             break
           }
@@ -307,41 +403,36 @@ var closeRE = RegExp('^(' + [
 ].join('|') + ')(?:[\.#][a-zA-Z0-9\u007F-\uFFFF_:-]+)*$')
 function selfClosing (tag) { return closeRE.test(tag) }
 
-},{"hyperscript-attribute-to-property":3}],5:[function(require,module,exports){
+},{"hyperscript-attribute-to-property":4}],6:[function(require,module,exports){
 const {app, h} = require('hyperapp')
 const hyperx = require('hyperx')
 const html = hyperx(h, {attrToProp: false})
-const partial = require('hyperapp-partial')
+const events = require('hyperapp-events')
+const views = require('hyperapp-module-views')
 
-const emit = app({
-    state: {},
-    mixins: [
-        partial,
-        partial.mixin('input',        require('./input')),
-        partial.mixin('synthcontrol', require('./synthcontrol')),
-        partial.mixin('sequencer',    require('./sequencer')),
-    ],
-    events: {
-        load (state, actions) {
-            setTimeout(_ => {
-                const data = localStorage.getItem('SYNTHDATA')
-                if (!data) return
-                const {voices, notes} = JSON.parse(data)
-                if (voices) emit('persist:setVoices', voices)
-                if (notes) emit('persist:setNotes', notes)
-            }, 0)
+events(views(app))({
+    modules: {
+        input: require('./input'),
+        synthcontrol: require('./synthcontrol'),
+        sequencer: require('./sequencer'),
+    },
+    actions: {
+        persistState: (state, actions, _, emit) => {
+            localStorage.setItem('SYNTHDATA', JSON.stringify({
+                voices: emit('persist:getVoices'),
+                notes: emit('persist:getNotes')
+            }))
         },
-        update (state, actions) {
-            setTimeout(_ => {
-                localStorage.setItem('SYNTHDATA', JSON.stringify({
-                    voices: emit('persist:getVoices'),
-                    notes: emit('persist:getNotes')
-                }))
-            })
-        }
+        loadState: (state, actions, _, emit) => {
+            const data = localStorage.getItem('SYNTHDATA')
+            if (!data) return
+            const {voices, notes} = JSON.parse(data)
+            if (voices) emit('persist:setVoices', voices)
+            if (notes) emit('persist:setNotes', notes)        
+        },
     },
     view: (state, actions, views) => html`
-        <app-layout>
+        <app-layout oncreate=${actions.loadState} onupdate=${actions.persistState} >
             <app-layout-left>
                 <main-panel>
                     ${views.sequencer.controls()}
@@ -357,7 +448,7 @@ const emit = app({
 })
 
 
-},{"./input":6,"./sequencer":7,"./synthcontrol":9,"hyperapp":2,"hyperapp-partial":1,"hyperx":4}],6:[function(require,module,exports){
+},{"./input":7,"./sequencer":8,"./synthcontrol":10,"hyperapp":3,"hyperapp-events":1,"hyperapp-module-views":2,"hyperx":5}],7:[function(require,module,exports){
 
 const {h} = require('hyperapp')
 const hyperx = require('hyperx')
@@ -375,10 +466,10 @@ const noteForChar = function (char) {
     return n > -1 ? n : null
 }
 
-module.exports = emit => ({
+module.exports = {
     state: {pressed: null},
     actions: {
-        down (state, actions, char) {
+        down (state, actions, char, emit) {
             const note = noteForChar(char)
             if (note === null) return
             if (char === state.pressed) return
@@ -386,7 +477,7 @@ module.exports = emit => ({
             emit('input:attackNote', note)
             return state
         },
-        up (state, actions, char) {
+        up (state, actions, char, emit) {
             const note = noteForChar(char)
             if (note === null) return
             if (char !== state.pressed) return
@@ -395,15 +486,13 @@ module.exports = emit => ({
             return state
         }
     },
-    events: {
-        load (state, actions) {
-            document.addEventListener('keydown', ev => {
-                actions.down(String.fromCharCode(ev.keyCode))
-            })
-            document.addEventListener('keyup', ev => {
-                actions.up(String.fromCharCode(ev.keyCode))
-            })
-        }
+    init (state, actions) {
+        document.addEventListener('keydown', ev => {
+            actions.down(String.fromCharCode(ev.keyCode))
+        })
+        document.addEventListener('keyup', ev => {
+            actions.up(String.fromCharCode(ev.keyCode))
+        })
     },
     views: {
         keyboard: ({pressed}, {down, up}) => html`
@@ -422,8 +511,8 @@ module.exports = emit => ({
                 `)}
             </keyboard>`
     }
-})
-},{"hyperapp":2,"hyperx":4}],7:[function(require,module,exports){
+}
+},{"hyperapp":3,"hyperx":5}],8:[function(require,module,exports){
 const {h} = require('hyperapp')
 const hyperx = require('hyperx')
 const html = hyperx(h, {attrToProp: false})
@@ -436,83 +525,74 @@ function noteName (note) {
     return NOTE_NAMES[note]
 }
 
-function isSelected ({voice, start, end}, xVoice, xTime) {
-    return voice === xVoice && ((xTime >= start && xTime <= end) || (xTime <= start && xTime >= end))
+function isSelected ({voice, selStart, selEnd}, xVoice, xTime) {
+    return voice === xVoice && ((xTime >= selStart && xTime <= selEnd) || (xTime <= selStart && xTime >= selEnd))
 }
 
 
 
-module.exports = emit => ({
+module.exports = {
     state: {
         mode: 'editing',
         times: [...Array(NUM_TIMES).keys()].map(_ => [...Array(8).keys()].map(_ => null)),
-        selection: {
-            selecting: false,
-            start: -1,
-            end: -1,
-            voice: -1
-        },
-        playing: {
-            recordNote: null,
-            record: false,
-            interval: null,
-            time: -1,
-        }
+        selecting: false,
+        selStart: -1,
+        selEnd: -1,
+        voice: -1,
+        recordNote: null,
+        record: false,
+        interval: null,
+        time: -1,
     },
 
     actions: {
 
-        selection: {
-            reset: (state, actions) => {
-                state.selection.selecting = false
-                state.selection.start = -1
-                state.selection.end = -1
-                state.selection.voice = -1
-                return state
-            },
+        resetSelection: (state, actions) => ({
+            selecting: false,
+            selStart: -1,
+            selEnd: -1,
+            voice: -1
+        }),
 
-            start: (state, actions, [time, voice]) => {
-                if (state.mode !== 'editing') return
-                state.selection.selecting = true
-                state.selection.start = time
-                state.selection.voice = voice
-                emit('sequencer:selectVoice', voice)
-                state.selection.end = time
-                return state
-            },
-
-            stop: (state, actions, time) => {
-                state.selection.selecting = false;
-                return state
-            },
-
-            set: (state, actions, time) => {
-                if (state.selection.selecting) {
-                    state.selection.end = time
-                    return state
-                }
-            },
-
-            note: (state, actions, note) => update => {
-                if (state.selection.start === -1) return
-                const {start, end, voice} = state.selection
-                const [from, to] = start < end ? [start, end] : [end, start] 
-                for (var i = from; i <= to; i++) {
-                    state.times[i][voice] = note
-                }
-                update(state)
-                actions.selection.reset()
-            }
+        startSelection: (state, actions, [time, voice], emit) => update => {
+            if (state.mode !== 'editing') return
+            update({
+                selecting: true,
+                selStart: time,
+                voice: voice,
+                selEnd: time,
+            })
+            emit('sequencer:selectVoice', voice)
         },
-        _setRecordedNote (state, actions) {
-            if (state.playing.record && state.playing.recordNote !== null) {
-                state.times[state.playing.time][emit('voices:selectedIndex?')] = state.playing.recordNote
+
+        stopSelection: (state, actions, time) => ({selecting: false}),
+
+        setSelection: (state, actions, time) => update => {
+            if (!state.selecting) return
+            update({selEnd: time})
+        },
+
+        setNoteOnSelection: (state, actions, note) => update => {
+            if (state.selStart === -1) return
+            const {selStart, selEnd, voice} = state
+            const [from, to] = selStart < selEnd ? [selStart, selEnd] : [selEnd, selStart] 
+            for (var i = from; i <= to; i++) {
+                state.times[i][voice] = note
+            }
+            update(state)
+            actions.resetSelection()
+        },
+
+        _setRecordedNote (state, actions, data, emit) {
+            if (state.record && state.recordNote !== null) {
+                state.times[state.time][emit('voices:selectedIndex?')] = state.recordNote
                 return state
             }
         },
+
         _recordAttackNote (state, actions, note) {
-            if (state.playing.record) {
-                state.playing.recordNote = note
+            if (state.record) {
+                state.recordNote = note
                 return state
             }
         },
@@ -521,10 +601,10 @@ module.exports = emit => ({
             actions._setRecordedNote()
         },
         recordReleaseNote (state, actions, note) {
-            state.playing.recordNote = null
+            state.recordNote = null
         },
-        _nextNote (state, actions) {
-            const currentTime = state.playing.time
+        _nextNote (state, actions, data, emit) {
+            const currentTime = state.time
             const currentNotes = currentTime === -1 ? [...Array(8).keys()].map(_ => null) : state.times[currentTime]
             const nextTime = (currentTime + 1) % state.times.length
             const nextNotes = state.times[nextTime]
@@ -537,7 +617,7 @@ module.exports = emit => ({
                     }
                 }
             }
-            state.playing.time = nextTime
+            state.time = nextTime
             return state
         },
         nextNote (state, actions) {
@@ -545,18 +625,18 @@ module.exports = emit => ({
             actions._setRecordedNote()
         },
         startPlaying (state, actions, record) {
-            if (state.playing.interval) return
-            state.playing.interval = setInterval(actions.nextNote, TIMESTEP)
-            state.playing.record = record || false
+            if (state.interval) return
+            state.interval = setInterval(actions.nextNote, TIMESTEP)
+            state.record = record || false
             return state
         },
         startRecording (state, actions) {
             actions.startPlaying(true)
         },
-        stopPlaying (state, actions) {
-            if (state.playing.interval) clearInterval(state.playing.interval)
-            state.playing.interval = null
-            state.playing.record = false
+        stopPlaying (state, actions, data, emit) {
+            if (state.interval) clearInterval(state.interval)
+            state.interval = null
+            state.record = false
             emit('sequencer:stopped')
             return state
         },
@@ -566,20 +646,20 @@ module.exports = emit => ({
             return state
         },
         setTime (state, actions, time) {
-            state.playing.time = time
+            state.time = time
             return state
         }
     },
+    init (state, actions) {
+        window.addEventListener('mouseup', ev => actions.stopSelection())
+        window.addEventListener('keydown', ev => {
+            if (ev.keyCode === 32) actions.note(null)
+        })
+    },
     events:  {
-        'load': (state, actions) => {
-            window.addEventListener('mouseup', ev => actions.selection.stop())
-            window.addEventListener('keydown', ev => {
-                if (ev.keyCode === 32) actions.note(null)
-            })
-        },
         'input:attackNote':  (state, actions, note) => {
             if (state.mode === 'editing') {
-                actions.selection.note(note)
+                actions.setNoteOnSelection(note)
             }
             return note
         },
@@ -600,16 +680,16 @@ module.exports = emit => ({
                     ${voices.map((note, voice) => html`
                     <td
                         class=${
-                            (isSelected(state.selection, voice, time) ? 'selected' : '') +
-                            (state.playing.time === time ? ' playing' : '')
+                            (isSelected(state, voice, time) ? 'selected' : '') +
+                            (state.time === time ? ' playing' : '')
                         }
                         onmousedown=${ev => {
                             ev.preventDefault(true)
-                            actions.selection.start([time, voice])
+                            actions.startSelection([time, voice])
                         }}
                         onmouseover=${ev => {
                             ev.preventDefault(true)
-                            actions.selection.set(time)
+                            actions.setSelection(time)
                         }}
                     >
                         ${noteName(note)}
@@ -621,15 +701,15 @@ module.exports = emit => ({
         
         controls: (state, actions) => html`
             <span>
-                <button class=${!!state.playing.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
-                <button class=${!!state.playing.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>
+                <button class=${!!state.record ? 'active' : ''} onmousedown=${actions.startRecording}>Rec</button>
+                <button class=${!!state.interval ? 'active' : ''} onmousedown=${actions.startPlaying}>Play</button>
                 <button onmousedown=${actions.stopPlaying}>Stop</button>
                 <button onmousedown=${_ => actions.setNote(null)}>X</button>
             </span>`,
     }
-})
+}
 
-},{"hyperapp":2,"hyperx":4}],8:[function(require,module,exports){
+},{"hyperapp":3,"hyperx":5}],9:[function(require,module,exports){
 
 const TUNING_FREQ = 440;
 const TUNING_NOTE = 69;
@@ -748,7 +828,7 @@ module.exports = {
     OSCILLATOR_TYPES,
     FILTER_TYPES
 }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const {h} = require('hyperapp')
 const hyperx = require('hyperx')
 const html = hyperx(h, {attrToProp: false})
@@ -794,7 +874,7 @@ const VOICE_PROPS = [
     'ampLevel',
 ]
 
-module.exports = emit => ({
+module.exports = {
     state: {
         selectedVoice: 0,
         voices: [...Array(8).keys()].map(_ => new Synth(audioContext))
@@ -918,5 +998,5 @@ module.exports = emit => ({
             </synth-panel>`
         },
     }
-})
-},{"./synth":8,"hyperapp":2,"hyperx":4}]},{},[5]);
+}
+},{"./synth":9,"hyperapp":3,"hyperx":5}]},{},[6]);
