@@ -2,8 +2,9 @@ import './style.less'
 import {h} from 'hyperapp'
 import cc from 'classcat'
 import synth from './synth'
+import initArray from '../init-array'
 
-const indices = [...Array(8).keys()]
+const indices = initArray(8, i => i)
 
 export default {
     modules: {

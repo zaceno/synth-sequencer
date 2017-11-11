@@ -23,7 +23,7 @@ export default {
     }),
     buble({ 
         jsx: 'h',
-        transforms: { spreadRest: false },
+//        transforms: { spreadRest: false },
     }),
     resolve({ jsnext: true }),
     commonjs(),

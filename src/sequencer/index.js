@@ -1,4 +1,5 @@
 import './style.less'
+import initArray from '../init-array'
 import {h} from 'hyperapp'
 import cc from 'classcat'
 import selection from './selection'
@@ -22,6 +23,9 @@ function noteName (note) {
 
 
 
+function initGrid () {
+    return initArray(NUM_TIMES, _ => initArray(8, _ => null))
+}
 export default {
 
     modules: {
@@ -31,7 +35,7 @@ export default {
     },
 
     state: {
-        times: [...Array(NUM_TIMES).keys()].map(_ => [...Array(8).keys()].map(_ => null)),
+        times: initGrid(),
     },
 
     actions: {
