@@ -1,43 +1,65 @@
-const {app, h} = require('hyperapp')
-const hyperx = require('hyperx')
-const html = hyperx(h, {attrToProp: false})
-const events = require('hyperapp-events')
-const views = require('hyperapp-module-views')
+import './style.less'
+import {app, h} from 'hyperapp'
+import views from 'hyperapp-module-views'
 
-events(views(app))({
+import keyboard from './keyboard'
+import soundbank from './soundbank'
+import sequencer from './sequencer'
+
+views(app)({
+    
     modules: {
-        input: require('./input'),
-        synthcontrol: require('./synthcontrol'),
-        sequencer: require('./sequencer'),
+        keyboard,
+        soundbank,
+        sequencer
     },
-    actions: {
-        persistState: (state, actions, _, emit) => {
-            localStorage.setItem('SYNTHDATA', JSON.stringify({
-                voices: emit('persist:getVoices'),
-                notes: emit('persist:getNotes')
-            }))
-        },
-        loadState: (state, actions, _, emit) => {
+
+    views: {
+        loadState: (state, actions, views) => {
+            actions.soundbank.init()
             const data = localStorage.getItem('SYNTHDATA')
             if (!data) return
             const {voices, notes} = JSON.parse(data)
-            if (voices) emit('persist:setVoices', voices)
-            if (notes) emit('persist:setNotes', notes)        
+            if (voices) views.soundbank.onload(voices)
+            if (notes) views.sequencer.onload(notes)
         },
+
+        saveState: (state, actions, views) => {
+            localStorage.setItem('SYNTHDATA', JSON.stringify({
+                voices: views.soundbank.onsave(),
+                notes: views.sequencer.onsave()
+            }))
+        }
     },
-    view: (state, actions, views) => html`
-        <app-layout oncreate=${actions.loadState} onupdate=${actions.persistState} >
+
+    view: (state, actions, {loadState, saveState, keyboard, soundbank, sequencer}) => (
+        <app-layout oncreate={loadState} onupdate={saveState} >
             <app-layout-left>
                 <main-panel>
-                    ${views.sequencer.controls()}
-                    ${views.synthcontrol.voices()}
-                    ${views.synthcontrol.panel()}
+                    <sequencer.controls onstop={soundbank.stopAll} />
+                    <soundbank.selector />
+                    <soundbank.panel />
                 </main-panel>
-                ${views.input.keyboard()}
+                <keyboard.keyboard 
+                    onattack={note => {
+                        soundbank.attack(note)
+                        sequencer.attack({note, voice: soundbank.getSelected() })
+                    }}
+                    onrelease={note => {
+                        soundbank.release(note)
+                        sequencer.release({note, voice: soundbank.getSelected() })
+                    }}
+                />
             </app-layout-left>
             <app-layout-right>
-                ${views.sequencer.grid()}
+                <sequencer.grid
+                    selectedVoice={soundbank.getSelected() }
+                    onselectVoice={i => soundbank.select(i) }
+                    onattack={({note, voice}) => soundbank.attackVoice({note, voice})}
+                    onrelease={({note, voice}) => soundbank.releaseVoice({note, voice})}
+                />
             </app-layout-right>
-        </app-layout>`,
+        </app-layout>
+    ),
 })
 

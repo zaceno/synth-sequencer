@@ -1,0 +1,50 @@
+body {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 13px;
+}
+
+app-layout {
+    display: flex;
+    app-layout-left {
+        flex: 0 0 800px;
+    }
+    app-layout-right {
+        flex: 1 0 1px;
+    }
+}
+
+
+
+button {
+    font-weight: bold;
+    background-color: #444;
+    color: #fff;
+    border: 2px black solid;
+    height: 25px; 
+    line-height: 15px;
+    &.active {
+        background-color: #e9931d;
+        color: #000;
+    }
+}
+
+    input[type=range]::-webkit-slider-runnable-track {
+        -webkit-appearance: none;
+        width: 300px;
+        height: 6px;
+        border-radius: 3px;
+        background-color: #e9931d;  
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        border: 1px #000 solid;
+        height: 15px;
+        width: 5px;
+        background: #444;
+    }
+
+
+main-panel {
+    display: block;
+    background: #ddd;
+}
