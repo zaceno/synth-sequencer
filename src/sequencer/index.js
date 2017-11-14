@@ -9,14 +9,6 @@ import {NUM_TIMES, NOTE_NAMES} from './const'
 import {KeyDown} from '../components/key-events'
 import {MouseUp} from '../components/mouse-events'
 
-/*
-TODO:
-move setRecordedNote, setNoteOnSelection
-then move buttons and stuff to respective modules.
-(means moving attack and release to views, perhaps have as a general rule to only call other modules views
-in views)
-*/
-
 
 function noteName (note) {
     if (note === null) return ''
