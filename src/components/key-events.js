@@ -1,34 +1,22 @@
-/*
-
-in event mode
-
-render a component: 
-  if in event mode: reset the registries and go to register mode
-  if in register mode do nothing
-
-when an event comes in
-    if in registry mode, go to event mode.
-
-*/
-var listening = true
 var registry
+var active = true;
 
 ['keyup', 'keydown', 'keypress'].map(type => window.addEventListener(type, ev => {
-    listening = true
-    if (!registry[type][ev.key]) return
     ev.preventDefault(true)
+    if (!registry[type][ev.key]) return
     registry[type][ev.key].map(fn => fn(ev))
 }))
 
 const KeyEventComponent = type => ({key, then}) => {
-    if (listening) {
-        registry = { keyup: {}, keydown: {}, keypress: {} }
-        listening = false
+    if (active) {
+        registry = {keyup: {}, keydown: {}, keypress: {}}
+        active = false
     }
     registry[type][key] = registry[type][key] || []
     registry[type][key].push(then)
 }
 
+export function activate () { active = true }
 export const KeyPress = KeyEventComponent('keypress')
 export const KeyUp = KeyEventComponent('keyup')
 export const KeyDown = KeyEventComponent('keydown')

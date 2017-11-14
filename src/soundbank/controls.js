@@ -19,10 +19,10 @@ const OSCILLATOR_TYPES = ['sawtooth', 'square', 'triangle', 'sine']
 const controlModule = ({initial, widget: Widget, params, name}) => ({
     state: {value: initial},
     actions: {
-        set: (_, __, value) => ({value})
+        set: _ => value => ({value})
     },
     views: {
-        control: (state, actions, _, {onset}) => {
+        control: (state, actions) => ({onset}) => {
             const widgetProps = Object.assign(params, {
                 value: state.value,
                 set: x => {
@@ -88,7 +88,7 @@ export const releaseTime = controlModule({
     name: 'Release Time',
     initial: DEFAULTS.releaseTime,
     widget: Slider,
-    params: {max: 0.2}
+    params: {max: 0.8}
 })
 
 export const sustainLevel = controlModule({

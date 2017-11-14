@@ -1,7 +1,5 @@
 import cc from 'classcat'
 import {h} from 'hyperapp'
-import {KeyDown} from '../components/key-events'
-import {MouseUp} from '../components/mouse-events'
 
 export default {
     
@@ -9,37 +7,40 @@ export default {
         start: -1,
         end: -1,
         selecting: false,
+        on: false,        
         col: null,
     },
 
     actions: {
 
         reset: _ => ({
+            on: false,
             start: -1,
             end: -1,
             selecting: false,
         }),
 
-        start: (state, actions, {row, col}) => ({
+        start: _ => ({row, col}) => ({
+            on: true,
             selecting: true,
             start: row,
             end: row,
             col,
         }),
 
-        set: (state, actions, {row}) => {
+        set: state => ({row}) => {
             if (!state.selecting) return
             return ({end: row})
         },
 
-        stop: (state, actions) => ({selecting: false}),
+        stop: _ => ({selecting: false}),
 
     },
 
     views: {
         
-        setNote: (state, actions, views, {value, grid}) => {
-            if (state.start === -1) return
+        map: (state, actions) => ({value, grid}) => {
+            if (!state.on) return
             const {start, end} = state
             const [from, to] = start < end ? [start, end] : [end, start] 
             for (var i = from; i <= to; i++) {
@@ -49,7 +50,7 @@ export default {
             return grid
         },
 
-        isSelected: (state, actions, views, {row, col}) => {
+        isSelected: state => ({row, col}) => {
             return  (
                 col === state.col &&
                 (
@@ -59,11 +60,9 @@ export default {
             )
         },
 
-        selectable: (state, actions, views, {row, col, oncol}, children) => {
+        selectable: (state, actions, {isSelected}) => ({row, col, oncol}, children) => {
             return children.map(node => {
-                node.props.class = cc([node.props.class, {
-                    selected: views.isSelected({row, col})
-                }])
+                node.props.class = cc([node.props.class, {selected: isSelected({row, col}) }])
                 node.props.onmousedown = ev => {
                     ev.preventDefault(true)
                     oncol(col)
@@ -76,13 +75,6 @@ export default {
                 return node
             })
         },
-
-        clearButton: (state, actions, views, {grid}) => [
-            <MouseUp then={actions.stop} />,
-            <KeyDown key=" " then={_ => views.setNote({note: null, grid})} />,
-            <button onmousedown={_ => views.setNote({note: null, grid})}>X</button>,
-        ],
-
     }
 }
 

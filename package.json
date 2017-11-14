@@ -6,8 +6,8 @@
   "main": "dist/index.html",
   "dependencies": {
     "classcat": "^1.0.1",
-    "hyperapp": "^0.15.1",
-    "hyperapp-module-views": "0.0.5",
+    "hyperapp": "^0.16.0",
+    "hyperapp-partial": "^0.8.1",
     "rollup": "^0.50.0",
     "rollup-plugin-buble": "^0.16.0",
     "rollup-plugin-commonjs": "^8.2.6",

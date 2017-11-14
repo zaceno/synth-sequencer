@@ -8,26 +8,29 @@ export default {
         voice: null,
     },
     actions: {
-        start: _ => ({on: true}),
-        stop: _ => ({on: false}),
-        setNote: (state, actions, {note, voice}) => ({note, voice}),
-        attack: (state, actions, {note, voice}) => {
+        start:   _ => ({on: true}),
+        stop:    _ => ({on: false}),
+        setNote: _ => ({note, voice}) => ({note, voice}),
+    },
+    views: {
+        getVoice: state => {
+            if (state.on) return state.voice
+            else return null
+        },
+
+        attack: (state, actions) => ({note, voice}) => {
             if (!state.on) return
             if (note === state.note) return
             if (voice === state.voice) return
-            return {note, voice}
+            return actions.setNote({note, voice})
         },
-        release: (state, actions, {note, voice}) => {
+        release: (state, actions) => ({note, voice}) => {
             if (note !== state.note) return
-            return {note: null, voice: null}
-        }
-    },
-    views: {
-        attack: (state, actions, views, {note, voice}) => actions.setNote({note, voice}),
-        release: (state, actions, views, {note, voice}) => actions.setNote({note: null, voice: null}),
+            return actions.setNote({note: null, voice: null})
+        },
         start: (state, actions) => actions.start(),
         stop: (state, actions) => actions.stop(),
-        recordButton: (state, actions, views, {onstart}) => (
+        recordButton: (state, actions) => ({onstart}) => (
             <button
                 onmousedown={_ => {
                     actions.start()

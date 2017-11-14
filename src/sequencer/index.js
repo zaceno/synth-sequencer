@@ -6,6 +6,8 @@ import selection from './selection'
 import recording from './recording'
 import playback from './playback'
 import {NUM_TIMES, NOTE_NAMES} from './const'
+import {KeyDown} from '../components/key-events'
+import {MouseUp} from '../components/mouse-events'
 
 /*
 TODO:
@@ -28,7 +30,7 @@ function initGrid () {
 }
 export default {
 
-    modules: {
+    partials: {
         selection,
         recording,
         playback,
@@ -40,7 +42,10 @@ export default {
 
     actions: {
 
-        setTimes: (state, actions, times) => { if (times) return {times} },
+        setTimes: state => times => ({times}),
+        
+        setTimesWith: (state, actions) => ({note, map}) =>
+            actions.setTimes(map({value: note, grid: state.times})),
 
         setRecordedNote: (state, actions) => {
             if (!state.recording.on) return
@@ -52,47 +57,59 @@ export default {
 
     views: {
 
-        attack: (state, actions, {selection, recording}, {note, voice}) => {
-            actions.setTimes(selection.setNote({grid: state.times, value: note}))
+        attack: (state, actions, {selection, recording}) => ({note, voice}) => {
+            if (state.selection.on) {
+                actions.setTimesWith({note, map: selection.selectionMap})
+            }
             recording.attack({note, voice})
         },
 
-        release: (state, actions, {recording}, {note, voice}) => {
+        release: (state, actions, {recording}) => ({note, voice}) => {
             recording.release({note, voice})
         },
 
         onsave: ({times}) => times,
 
-        onload: (state, actions, views, times) => actions.setTimes(times),
+        onload: (state, actions) => times => actions.setTimes(times),
 
-        grid: (state, actions, {playback, selection}, {onattack, onrelease, onselectVoice}) => {
-            playback.play({times: state.times, onattack, onrelease})
-            actions.setRecordedNote()
-            return (
-                <table class="sequencer">
-                {state.times.map((voices, time) => (
-                    <tr>
-                        <td class="time" onclick={_ => playback.setTime(time)}>{time}</td>
-                        {voices.map((note, voice) => (
-                            <selection.selectable row={time} col={voice} oncol={onselectVoice}>
-                                <td class={cc({playing: playback.nowPlaying(time)})}>{noteName(note)}</td>
-                            </selection.selectable>
-                        ))}
-                    </tr>
-                ))}
-                </table>
-            )
-        },
+        grid: (state, actions, {playback, selection, recording}) => ({onattack, onrelease, onselectVoice}) => (
+            <table class="sequencer" onupdate={_ => {
+                playback.play({
+                    times: state.times,
+                    onattack,
+                    onrelease,
+                    recordingVoice: recording.getVoice()
+                })
+                actions.setRecordedNote()
+            }} >
+            {state.times.map((voices, time) => (
+                <tr>
+                    <td class="time" onclick={_ => playback.setTime(time)}>{time}</td>
+                    {voices.map((note, voice) => (
+                        <selection.selectable row={time} col={voice} oncol={onselectVoice}>
+                            <td class={cc({playing: playback.nowPlaying(time)})}>{noteName(note)}</td>
+                        </selection.selectable>
+                    ))}
+                </tr>
+            ))}
+            </table>
+        ),
         
-        controls: (state, actions, {playback, recording, selection}, {onstop}) => (
+        controls: (state, actions, {playback, recording, selection}) => ({onstop}) => (
             <span>
+                <MouseUp then={actions.selection.stop} />
+                <KeyDown key=" " then={_ => {
+                    actions.setTimesWith({note: null, map: selection.map})
+                }} />
                 <recording.recordButton onstart={playback.start}/>
                 <playback.startButton />
                 <playback.stopButton onstop={_ => {
                     recording.stop()
                     onstop && onstop()
                 }} />
-                <selection.clearButton grid={state.times} />
+                <button onmousedown={_ => {
+                    actions.setTimesWith({note: null, map: selection.map})
+                }}>X</button>
             </span>
         )
     }

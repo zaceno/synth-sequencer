@@ -7,6 +7,7 @@ export default {
         on: false,
         interval: null,
         time: 0,
+        played: null
     },
 
     actions: {
@@ -25,26 +26,33 @@ export default {
             return ({ on: false, interval: null })
         },
 
-        advance: (state, actions) => ({time: (state.time + 1) % NUM_TIMES}),
+        advance: (state, actions) => {
+            return ({time: (state.time + 1) % NUM_TIMES})
+        },
 
-        setTime: (state, actions, time) => ({time}),
+        setTime: _ => time => ({time}),
+
+        setPlayed: state => ({played: state.time}),
     },
 
     views: {
 
-        start: (state, actions) => actions.start(),
+        start: (_, actions) => actions.start(),
 
-        stop: (state, actions) => actions.stop(),
+        stop: (_, actions) => actions.stop(),
 
-        setTime: (state, actions, views, time) => ({time}),
+        setTime: (_, actions) => time => actions.setTime(time),
 
-        nowPlaying: (state, actions, views, time) => time === state.time,
+        nowPlaying: state => time => time === state.time,
 
-        play: (state, actions, views, {times, onattack, onrelease}) => {
+        play: (state, actions) => ({times, onattack, onrelease, recordingVoice}) => {
             if (!state.on) return
+            if (state.played === state.time) return //make sure the below is only run once per step
+            actions.setPlayed()
             const notes = times[state.time]
             const prev = times[(state.time + NUM_TIMES - 1) % NUM_TIMES]
             notes.forEach((note, voice) => {
+                if (voice === recordingVoice) return
                 if (note === prev[voice]) return
                 if (note !== null) {
                     onattack({voice, note})
@@ -54,7 +62,7 @@ export default {
             })
         },
 
-        startButton: (state, actions, views, {onstart}) => (
+        startButton: (state, actions) => ({onstart}) => (
             <button
                 onmousedown={_ => {
                     if (state.on) return
@@ -67,7 +75,7 @@ export default {
             </button>  
         ),
 
-        stopButton: (state, actions, views, {onstop}) => (
+        stopButton: (state, actions) => ({onstop}) => (
             <button
                 onmousedown={_ => {
                     if (!state.on) return

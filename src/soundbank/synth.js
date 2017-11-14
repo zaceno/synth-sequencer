@@ -1,16 +1,6 @@
 import {h} from 'hyperapp'
 import cc from 'classcat'
-import {
-    octave,
-    oscillatorType,
-    ampLevel,
-    sustainLevel,
-    attackTime,
-    decayTime,
-    releaseTime,
-    filterCutoff,
-    filterQ,
-} from './controls'
+import * as controls from './controls'
 
 
 const TUNING_FREQ = 440;
@@ -33,21 +23,11 @@ export default {
         playing: null,
     },
     
-    modules: {
-        oscillatorType,
-        octave,
-        filterCutoff,
-        filterQ,
-        attackTime,
-        releaseTime,
-        decayTime,
-        sustainLevel,
-        ampLevel,
-    },
+    partials: controls,
 
     actions: {
     
-        init: (state, actions, ctx) => {
+        init: state => ctx => {
             const oscillator = ctx.createOscillator()
             oscillator.type = state.oscillatorType.value
             
@@ -77,8 +57,16 @@ export default {
             }
         },
 
-        attack: (state, actions, note) => {
+        setNote: _ => note => ({playing: note})
+
+    },
+
+
+    views: {
+
+        attack: (state, actions) => note => {
             if (state.playing === note) return
+            actions.setNote(note)
             const freq = noteToHz(note, state.octave.value)
             var t = state.audioContext.currentTime
             state.oscillator.frequency.cancelScheduledValues(t)
@@ -89,43 +77,36 @@ export default {
             t += +state.attackTime.value
             state.envelope.gain.linearRampToValueAtTime(1, t)
             t += +state.decayTime.value
-            state.envelope.gain.linearRampToValueAtTime(+state.sustainLevel.value, t)
-
-            return {playing: note}
+            state.envelope.gain.linearRampToValueAtTime(+state.sustainLevel.value, t)    
         },
 
-        release: (state, actions, note) => {
+        release: (state, actions) => note => {
             if (state.playing !== note) return
+            actions.setNote(null)
             var t = state.audioContext.currentTime + 0.01
             state.envelope.gain.cancelScheduledValues(t)
-            t += state.releaseTime.value
+            t += +state.releaseTime.value
             state.envelope.gain.linearRampToValueAtTime(0, t)
-            return {playing: null}
         },
 
-        stop: (state, actions) => {
+        stop: (state, actions, {release}) => {
             if (state.playing === null) return
-            actions.release(state.playing)
+            release(state.playing)
         },
 
-    },
-
-
-    views: {
-
-        onsave: (state, actions) => ({
+        onsave: state => ({
             oscillatorType: state.oscillatorType.value,
-            octave: state.octave.value,
-            filterCutoff: state.filterCutoff.value,
-            filterQ: state.filterQ.value,
-            attackTime: state.attackTime.value,
-            decayTime: state.decayTime.value,
-            sustainLevel: state.sustainLevel.value,
-            releaseTime: state.releaseTime.value,
-            ampLevel: state.ampLevel.value,
+            octave:         state.octave.value,
+            filterCutoff:   state.filterCutoff.value,
+            filterQ:        state.filterQ.value,
+            attackTime:     state.attackTime.value,
+            decayTime:      state.decayTime.value,
+            sustainLevel:   state.sustainLevel.value,
+            releaseTime:    state.releaseTime.value,
+            ampLevel:       state.ampLevel.value,
         }),
 
-        onload: (state, actions, views, values) => {
+        onload: (state, actions) => values => {
             actions.oscillatorType.set(values.oscillatorType)
             actions.octave.set(values.octave)
             actions.filterCutoff.set(values.filterCutoff)

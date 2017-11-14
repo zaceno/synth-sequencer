@@ -28,11 +28,11 @@ export default {
     state: {pressed: null},
 
     actions: {
-        pressed: (state, actions, pressed) => ({pressed})
+        pressed: _ => (pressed) => ({pressed})
     },
 
     views: {
-        keyboard: (state, actions, views, props) => {
+        keyboard: (state, actions) =>({onattack, onrelease}) => {
 
             const clav = char => {
 
@@ -40,13 +40,13 @@ export default {
 
                 const onUp = _ => {
                     if (char !== state.pressed) return
-                    if (char === state.pressed) props.onrelease(note)
+                    if (char === state.pressed) onrelease(note)
                     actions.pressed(null)
                 }
 
                 const onDown = _ => {
-                    if (props.char === state.pressed) return
-                    if (char !== state.pressed) props.onattack(note)        
+                    if (char === state.pressed) return
+                    if (char !== state.pressed) onattack(note)        
                     actions.pressed(char)
                 }
 

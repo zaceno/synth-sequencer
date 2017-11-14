@@ -15,5 +15,5 @@ export const Slider = ({value, set, min, max, step}) => h('input', {
     max: max,
     step: step || "any",
     value: value,
-    oninput: ev => set(ev.currentTarget.value),
+    oninput: ev => set(+ev.currentTarget.value),
 })

@@ -1,14 +1,15 @@
 import './style.less'
 import {app, h} from 'hyperapp'
-import views from 'hyperapp-module-views'
-
+import partial from 'hyperapp-partial'
+import {activate as activateKeyEvents} from './components/key-events'
+import {activate as activateMouseEvents} from './components/mouse-events'
 import keyboard from './keyboard'
 import soundbank from './soundbank'
 import sequencer from './sequencer'
 
-views(app)({
+partial(app)({
     
-    modules: {
+    partials: {
         keyboard,
         soundbank,
         sequencer
@@ -16,7 +17,6 @@ views(app)({
 
     views: {
         loadState: (state, actions, views) => {
-            actions.soundbank.init()
             const data = localStorage.getItem('SYNTHDATA')
             if (!data) return
             const {voices, notes} = JSON.parse(data)
@@ -33,7 +33,11 @@ views(app)({
     },
 
     view: (state, actions, {loadState, saveState, keyboard, soundbank, sequencer}) => (
-        <app-layout oncreate={loadState} onupdate={saveState} >
+        <app-layout oncreate={loadState} onupdate={_ => {
+                saveState()
+                activateKeyEvents() //necessary for key event components to work.
+                activateMouseEvents() //necessary for mouse event components to work.
+            }} >
             <app-layout-left>
                 <main-panel>
                     <sequencer.controls onstop={soundbank.stopAll} />
