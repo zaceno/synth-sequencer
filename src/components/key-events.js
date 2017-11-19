@@ -1,4 +1,4 @@
-var registry
+var registry = {keyup: {}, keydown: {}, keypress: {}};
 var active = true;
 
 ['keyup', 'keydown', 'keypress'].map(type => window.addEventListener(type, ev => {

@@ -1,5 +1,5 @@
 import './style.less'
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 import synth from './synth'
 import initArray from '../init-array'
@@ -7,7 +7,7 @@ import initArray from '../init-array'
 const indices = initArray(8, i => i)
 
 export default {
-    partials: {
+    sub: {
         0: synth,
         1: synth,
         2: synth,
@@ -21,30 +21,30 @@ export default {
     state: { selected: 0 },
     
     actions: {
-        select: _ => voice => ({selected: voice}),
+        select:( state, actions, voice) => ({selected: voice}),
+        init: (state, actions) => {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)()
+            indices.forEach(i => actions[i].init(ctx))
+        },
     },
 
-    init: actions => {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)()
-        indices.forEach(i => actions[i].init(ctx))
-    },
     
     views: {
         getSelected: state => state.selected,
 
-        select: (state, actions) => (voice) => actions.select(voice),
+        select: (state, actions, views, voice) => actions.select(voice),
 
         stopAll: (state, actions, views) => indices.map(i => views[i].stop()),
 
-        attack: (state, actions, views) => (note) => views[state.selected].attack(note),
+        attack: (state, actions, views, note) => views[state.selected].attack(note),
 
-        release: (state, actions, views) => (note) => views[state.selected].release(note),
+        release: (state, actions, views, note) => views[state.selected].release(note),
 
-        attackVoice: (state, actions, views) => ({note, voice}) => views[voice].attack(note),
+        attackVoice: (state, actions, views, {note, voice}) => views[voice].attack(note),
 
-        releaseVoice: (state, actions, views) => ({note, voice}) => views[voice].release(note),    
+        releaseVoice: (state, actions, views, {note, voice}) => views[voice].release(note),    
 
-        onload: (state, actions, views) => data => indices.forEach(voice => views[voice].onload(data[voice])),
+        onload: (state, actions, views, data) => indices.forEach(voice => views[voice].onload(data[voice])),
 
         onsave: (state, actions, views) => indices.map(voice => views[voice].onsave()),
 

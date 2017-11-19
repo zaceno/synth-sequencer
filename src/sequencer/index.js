@@ -1,6 +1,6 @@
 import './style.less'
 import initArray from '../init-array'
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 import selection from './selection'
 import recording from './recording'
@@ -9,13 +9,6 @@ import {NUM_TIMES, NOTE_NAMES} from './const'
 import {KeyDown} from '../components/key-events'
 import {MouseUp} from '../components/mouse-events'
 
-/*
-TODO:
-move setRecordedNote, setNoteOnSelection
-then move buttons and stuff to respective modules.
-(means moving attack and release to views, perhaps have as a general rule to only call other modules views
-in views)
-*/
 
 
 function noteName (note) {
@@ -30,7 +23,7 @@ function initGrid () {
 }
 export default {
 
-    partials: {
+    sub: {
         selection,
         recording,
         playback,
@@ -42,9 +35,9 @@ export default {
 
     actions: {
 
-        setTimes: state => times => ({times}),
+        setTimes: (state, actions, times) => ({times}),
         
-        setTimesWith: (state, actions) => ({note, map}) =>
+        setTimesWith: (state, actions, {note, map}) =>
             actions.setTimes(map({value: note, grid: state.times})),
 
         setRecordedNote: (state, actions) => {
@@ -57,22 +50,22 @@ export default {
 
     views: {
 
-        attack: (state, actions, {selection, recording}) => ({note, voice}) => {
+        attack: (state, actions, {selection, recording}, {note, voice}) => {
             if (state.selection.on) {
-                actions.setTimesWith({note, map: selection.selectionMap})
+                actions.setTimesWith({note, map: selection.map})
             }
             recording.attack({note, voice})
         },
 
-        release: (state, actions, {recording}) => ({note, voice}) => {
+        release: (state, actions, {recording}, {note, voice}) => {
             recording.release({note, voice})
         },
 
         onsave: ({times}) => times,
 
-        onload: (state, actions) => times => actions.setTimes(times),
+        onload: (state, actions, views, times) => actions.setTimes(times),
 
-        grid: (state, actions, {playback, selection, recording}) => ({onattack, onrelease, onselectVoice}) => (
+        grid: (state, actions, {playback, selection, recording}, {onattack, onrelease, onselectVoice}) => (
             <table class="sequencer" onupdate={_ => {
                 playback.play({
                     times: state.times,
@@ -95,7 +88,7 @@ export default {
             </table>
         ),
         
-        controls: (state, actions, {playback, recording, selection}) => ({onstop}) => (
+        controls: (state, actions, {playback, recording, selection}, {onstop}) => (
             <span>
                 <MouseUp then={actions.selection.stop} />
                 <KeyDown key=" " then={_ => {

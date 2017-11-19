@@ -1,5 +1,5 @@
 import cc from 'classcat'
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 
 export default {
     
@@ -20,7 +20,7 @@ export default {
             selecting: false,
         }),
 
-        start: _ => ({row, col}) => ({
+        start: (state, actions, {row, col}) => ({
             on: true,
             selecting: true,
             start: row,
@@ -28,7 +28,7 @@ export default {
             col,
         }),
 
-        set: state => ({row}) => {
+        set: (state, actions, {row}) => {
             if (!state.selecting) return
             return ({end: row})
         },
@@ -39,7 +39,7 @@ export default {
 
     views: {
         
-        map: (state, actions) => ({value, grid}) => {
+        map: (state, actions, views, {value, grid}) => {
             if (!state.on) return
             const {start, end} = state
             const [from, to] = start < end ? [start, end] : [end, start] 
@@ -50,17 +50,15 @@ export default {
             return grid
         },
 
-        isSelected: state => ({row, col}) => {
-            return  (
-                col === state.col &&
-                (
-                    ( row >= state.start && row <= state.end ) ||
-                    ( row <= state.start && row >= state.end )
-                )
+        isSelected: (state, actions, views, {row, col}) => (
+            col === state.col &&
+            (
+                ( row >= state.start && row <= state.end ) ||
+                ( row <= state.start && row >= state.end )
             )
-        },
+        ),
 
-        selectable: (state, actions, {isSelected}) => ({row, col, oncol}, children) => {
+        selectable: (state, actions, {isSelected}, {row, col, oncol}, children) => {
             return children.map(node => {
                 node.props.class = cc([node.props.class, {selected: isSelected({row, col}) }])
                 node.props.onmousedown = ev => {

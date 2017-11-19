@@ -1,5 +1,5 @@
 import {Slider, ButtonOptions} from '../components/controls'
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 
 const DEFAULTS = {
@@ -19,10 +19,10 @@ const OSCILLATOR_TYPES = ['sawtooth', 'square', 'triangle', 'sine']
 const controlModule = ({initial, widget: Widget, params, name}) => ({
     state: {value: initial},
     actions: {
-        set: _ => value => ({value})
+        set: (state, actions, value) => ({value})
     },
     views: {
-        control: (state, actions) => ({onset}) => {
+        control: (state, actions, views, {onset}) => {
             const widgetProps = Object.assign(params, {
                 value: state.value,
                 set: x => {

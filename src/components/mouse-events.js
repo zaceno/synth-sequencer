@@ -1,6 +1,6 @@
 
 var active = true
-var registry
+var registry = { mouseup: [], mousedown: [], mousemove: [] }
 
 ['mouseup', 'mousedown', 'mousemove'].map(type => window.addEventListener(type, ev => {
     registry[type].map(fn => fn(ev))

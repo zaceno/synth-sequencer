@@ -1,4 +1,4 @@
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 import {TIMESTEP, NUM_TIMES} from './const'
 
@@ -30,7 +30,7 @@ export default {
             return ({time: (state.time + 1) % NUM_TIMES})
         },
 
-        setTime: _ => time => ({time}),
+        setTime: (state, actions, time) => ({time}),
 
         setPlayed: state => ({played: state.time}),
     },
@@ -41,11 +41,11 @@ export default {
 
         stop: (_, actions) => actions.stop(),
 
-        setTime: (_, actions) => time => actions.setTime(time),
+        setTime: (_, actions, views, time) => actions.setTime(time),
 
-        nowPlaying: state => time => time === state.time,
+        nowPlaying: (state, actions, views, time) => time === state.time,
 
-        play: (state, actions) => ({times, onattack, onrelease, recordingVoice}) => {
+        play: (state, actions, views, {times, onattack, onrelease, recordingVoice}) => {
             if (!state.on) return
             if (state.played === state.time) return //make sure the below is only run once per step
             actions.setPlayed()
@@ -62,7 +62,7 @@ export default {
             })
         },
 
-        startButton: (state, actions) => ({onstart}) => (
+        startButton: (state, actions, views, {onstart}) => (
             <button
                 onmousedown={_ => {
                     if (state.on) return
@@ -75,7 +75,7 @@ export default {
             </button>  
         ),
 
-        stopButton: (state, actions) => ({onstop}) => (
+        stopButton: (state, actions, views, {onstop}) => (
             <button
                 onmousedown={_ => {
                     if (!state.on) return

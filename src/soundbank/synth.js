@@ -1,4 +1,4 @@
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 import * as controls from './controls'
 
@@ -23,11 +23,11 @@ export default {
         playing: null,
     },
     
-    partials: controls,
+    sub: controls,
 
     actions: {
     
-        init: state => ctx => {
+        init: (state, actions, ctx) => {
             const oscillator = ctx.createOscillator()
             oscillator.type = state.oscillatorType.value
             
@@ -57,14 +57,14 @@ export default {
             }
         },
 
-        setNote: _ => note => ({playing: note})
+        setNote: (state, actions, note) => ({playing: note})
 
     },
 
 
     views: {
 
-        attack: (state, actions) => note => {
+        attack: (state, actions, views, note) => {
             if (state.playing === note) return
             actions.setNote(note)
             const freq = noteToHz(note, state.octave.value)
@@ -80,7 +80,7 @@ export default {
             state.envelope.gain.linearRampToValueAtTime(+state.sustainLevel.value, t)    
         },
 
-        release: (state, actions) => note => {
+        release: (state, actions, views, note) => {
             if (state.playing !== note) return
             actions.setNote(null)
             var t = state.audioContext.currentTime + 0.01
@@ -106,7 +106,7 @@ export default {
             ampLevel:       state.ampLevel.value,
         }),
 
-        onload: (state, actions) => values => {
+        onload: (state, actions, views, values) => {
             actions.oscillatorType.set(values.oscillatorType)
             actions.octave.set(values.octave)
             actions.filterCutoff.set(values.filterCutoff)
@@ -123,20 +123,22 @@ export default {
             state.amplifier.gain.value = values.ampLevel
         },
 
-        panel: (state, actions, views) => <synth-panel>
-            <div class="col-1">
-                <views.oscillatorType.control onset={v => (state.oscillator.type = v)} />
-                <views.octave.control />
-                <views.filterCutoff.control onset={v => (state.filter.frequency.value = v)} />
-                <views.filterQ.control onset={v => (state.filter.Q.value = v)} />
-            </div>
-            <div class="col-2">
-                <views.attackTime.control />
-                <views.decayTime.control />
-                <views.sustainLevel.control />
-                <views.releaseTime.control />
-                <views.ampLevel.control onset={v => (state.amplifier.gain.value = v)} />
-            </div>
-        </synth-panel>
+        panel: (state, actions, views) => (
+            <synth-panel>
+                <div class="col-1">
+                    <views.oscillatorType.control onset={v => (state.oscillator.type = v)} />
+                    <views.octave.control />
+                    <views.filterCutoff.control onset={v => (state.filter.frequency.value = v)} />
+                    <views.filterQ.control onset={v => (state.filter.Q.value = v)} />
+                </div>
+                <div class="col-2">
+                    <views.attackTime.control />
+                    <views.decayTime.control />
+                    <views.sustainLevel.control />
+                    <views.releaseTime.control />
+                    <views.ampLevel.control onset={v => (state.amplifier.gain.value = v)} />
+                </div>
+            </synth-panel>
+        )
     }
 }

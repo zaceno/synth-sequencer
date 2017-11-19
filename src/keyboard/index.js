@@ -1,5 +1,5 @@
 import './style.less'
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 import {KeyUp, KeyDown} from '../components/key-events'
 
@@ -28,11 +28,11 @@ export default {
     state: {pressed: null},
 
     actions: {
-        pressed: _ => (pressed) => ({pressed})
+        pressed: (state, actions, pressed) => ({pressed})
     },
 
     views: {
-        keyboard: (state, actions) =>({onattack, onrelease}) => {
+        keyboard: (state, actions, views, {onattack, onrelease}) => {
 
             const clav = char => {
 

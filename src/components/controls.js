@@ -1,4 +1,4 @@
-import {h} from 'hyperapp'
+import {h} from 'picodom'
 import cc from 'classcat'
 
 export const ButtonOptions = ({options, value, set}) => h('span', {class: 'button-options'}, options.map(o => h('button', {
