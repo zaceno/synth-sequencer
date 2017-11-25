@@ -1,10 +1,10 @@
-import buble from 'rollup-plugin-buble'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import uglify from 'rollup-plugin-uglify'
 import serve from 'rollup-plugin-serve'
 import livereload from 'rollup-plugin-livereload'
 import less from 'rollup-plugin-lessify'
+import {minify} from 'uglify-es'
 
 const prod = !process.env.ROLLUP_WATCH
 const dev = !!process.env.ROLLUP_WATCH
@@ -21,13 +21,9 @@ export default {
         insert: true,
 //        include: 'src/style/*'
     }),
-    buble({ 
-        jsx: 'h',
-//        transforms: { spreadRest: false },
-    }),
     resolve({ jsnext: true }),
     commonjs(),
-    prod && uglify(),
+    prod && uglify({}, minify),
     dev && livereload('dist'),
     dev && serve({
       contentBase: ['dist'],

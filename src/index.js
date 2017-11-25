@@ -1,80 +1,60 @@
 import './style.less'
 import zxState from 'zx-state'
-import {h, patch} from 'picodom'
-import {activate as activateKeyEvents} from './components/key-events'
-import {activate as activateMouseEvents} from './components/mouse-events'
-import keyboard from './keyboard'
-import soundbank from './soundbank'
-import sequencer from './sequencer'
+import {patch} from 'picodom'
+import {div} from './tags'
+import Keyboard from './keyboard'
+import Soundbank from './soundbank'
+import Sequencer from './sequencer'
 
-const appDef = {
-    sub: {
-        keyboard,
-        soundbank,
-        sequencer
-    },
+const main = $ => {
+    const {voices, notes} = JSON.parse(localStorage.getItem('SYNTHDATA') || {})
 
-    views: {
-        loadState: (state, actions, views) => {
-            const data = localStorage.getItem('SYNTHDATA')
-            if (!data) return
-            const {voices, notes} = JSON.parse(data)
-            if (voices) views.soundbank.onload(voices)
-            if (notes) views.sequencer.onload(notes)
+    
+    const soundbank = $.sync(Soundbank, voices, {
+        onselect: _ => sequencer.resetSelection()
+    })
+    
+    const keyboard  = $.sync(Keyboard, {
+        onattack: note => {
+            soundbank.attackSelected(note)
+            sequencer.attack(note, soundbank.getSelected())
         },
+        onrelease: note => {
+            soundbank.releaseSelected(note)
+            sequencer.release(note, soundbank.getSelected())
+        }
+    })
+    
+    const sequencer = $.sync(Sequencer, notes, {
+        onselectVoice: i => soundbank.setSelected(i),
+        onattack: (note, voice) => soundbank.attack(note, voice),
+        onrelease: (note, voice) => soundbank.release(note, voice),
+        getSelectedVoice: soundbank.getSelected,
+        onstop: soundbank.stopAll,
+    })
 
-        saveState: (state, actions, views) => {
-            localStorage.setItem('SYNTHDATA', JSON.stringify({
-                voices: views.soundbank.onsave(),
-                notes: views.sequencer.onsave()
-            }))
-        },
-
-        main: (state, actions, {loadState, saveState, keyboard, soundbank, sequencer}) => (
-            <app-layout>
-                <app-layout-left>
-                    <main-panel>
-                        <sequencer.controls onstop={soundbank.stopAll} />
-                        <soundbank.selector />
-                        <soundbank.panel />
-                    </main-panel>
-                    <keyboard.keyboard 
-                        onattack={note => {
-                            soundbank.attack(note)
-                            sequencer.attack({note, voice: soundbank.getSelected() })
-                        }}
-                        onrelease={note => {
-                            soundbank.release(note)
-                            sequencer.release({note, voice: soundbank.getSelected() })
-                        }}
-                    />
-                </app-layout-left>
-                <app-layout-right>
-                    <sequencer.grid
-                        selectedVoice={soundbank.getSelected() }
-                        onselectVoice={i => soundbank.select(i) }
-                        onattack={({note, voice}) => soundbank.attackVoice({note, voice})}
-                        onrelease={({note, voice}) => soundbank.releaseVoice({note, voice})}
-                    />
-                </app-layout-right>
-            </app-layout>
-        )
-    },
-}
-
-const onupdate = (_ => {
-    var node
     return _ => {
-        activateKeyEvents()
-        activateMouseEvents()
-        patch(node, (node = views.main()))
-    }
-})()
+        localStorage.setItem('SYNTHDATA', JSON.stringify({
+            voices: soundbank.getPersistentData(),
+            notes: sequencer.getPersistentData()
+        }))    
 
-const init = _ => {
-    actions.soundbank.init()
-    views.loadState()
+        return div({class: 'app-layout'}, [
+            div({class: 'app-layout-left'}, [
+                div({class: 'main-panel'}, [
+                    sequencer.controls(),
+                    soundbank.selector(),
+                    soundbank.panel()
+                ]),
+                keyboard()
+            ]),
+            div({class: 'app-layout-right'}, [
+                sequencer.grid()
+            ])
+        ])
+    }
 }
 
-const {actions, views} = zxState(appDef, onupdate)
-init()
+//run:
+var node
+const view = zxState(main, _ => patch(node, (node = view())))

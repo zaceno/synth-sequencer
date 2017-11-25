@@ -8,14 +8,14 @@
     "classcat": "^1.0.1",
     "picodom": "^1.0.2",
     "rollup": "^0.50.0",
-    "rollup-plugin-buble": "^0.16.0",
     "rollup-plugin-commonjs": "^8.2.6",
     "rollup-plugin-lessify": "^1.0.2",
     "rollup-plugin-livereload": "^0.6.0",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-serve": "^0.4.2",
     "rollup-plugin-uglify": "^2.0.1",
-    "zx-state": "0.0.5"
+    "uglify-es": "^3.1.10",
+    "zx-state": "^0.4.0"
   },
   "scripts": {
     "build": "rollup -c",
