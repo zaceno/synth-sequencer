@@ -1,8 +1,6 @@
-import {div, span} from './tags'
+import {h} from 'hyperapp'
 import cc from 'classcat'
 import {KEYBOARD_KEYS, KEYBOARD_BLACK_KEYS} from './const'
-
-
 const isBlack  = char =>  KEYBOARD_BLACK_KEYS.indexOf(char) > -1
 
 const noteForChar = function (char) {
@@ -10,43 +8,62 @@ const noteForChar = function (char) {
     return n > -1 ? n : null
 }
 
-export default ($, {onattack, onrelease}) => {
+const Keyboard = ({pressed, attack, release}) => (
+    <div class="keyboard" key="keyboard">
+        {KEYBOARD_KEYS.map(char => (
+        <div
+            class={cc(['clav', {
+                white: !isBlack(char),
+                black: isBlack(char),
+                pressed: char === pressed,
+            }])}
+            onmousedown={ ev => attack(char) }
+            onmouseup={ ev => release(char) }
+        >
+            <span class="char">{char.toUpperCase()}</span>
+        </div>
+        ))}
+    </div>
+)
 
-    $.set({pressed: null})
+export default {
+    state: {
+        pressed: null
+    },
 
-    const actions = $.with({
-        attack: (state, char) => {
-            const note = KEYBOARD_KEYS.indexOf(char)
-            if (note === -1) return false
-            if (char === state.pressed) return true
-            if (char !== state.pressed) onattack(note)
-            $.set({pressed: char})
-            return true
+    actions: {
+        
+        init: ({onattack, onrelease}) => (state, actions) => {
+            addEventListener('keydown', ev => actions.attack(ev.key) && ev.preventDefault(true))
+            addEventListener('keyup', ev => actions.release(ev.key) && ev.preventDefault(true))
+            return {
+                onattack: onattack || (_ => {}),
+                onrelease: onrelease || (_ => {}),
+            }
         },
-        release: (state, char) => {
+        
+        attack: char => state => {
             const note = KEYBOARD_KEYS.indexOf(char)
-            if (note === -1) return false
-            if (char !== state.pressed) return true
-            if (char === state.pressed) onrelease(note)
-            $.set({pressed: null})
-            return true
+            if (note === -1) return
+            if (char === state.pressed) return
+            if (char !== state.pressed) state.onattack(note)
+            return {pressed: char}
+        },
+
+        release: char => state => {
+            const note = KEYBOARD_KEYS.indexOf(char)
+            if (note === -1) return
+            if (char !== state.pressed) return
+            if (char === state.pressed) state.onrelease(note)
+            return {pressed: null}
         }
+    },
+
+    view: (state, actions) => ({
+        Keyboard: _ => Keyboard({
+            attack: actions.attack,
+            release: actions.release,
+            pressed: state.pressed,
+        })
     })
-
-    addEventListener('keydown', ev => actions.attack(ev.key) && ev.preventDefault(true))
-    addEventListener('keyup', ev => actions.release(ev.key) && ev.preventDefault(true))
-
-    return $.with(state =>
-        div({class:'keyboard'}, KEYBOARD_KEYS.map(char =>
-            div({
-                class: cc(['clav', {
-                    white: !isBlack(char),
-                    black: isBlack(char),
-                    pressed: char === state.pressed
-                }]),
-                onmousedown: _ => actions.attack(char),
-                onmouseup: _ => actions.release(char),
-            }, span({class: 'char'}, char.toUpperCase()))
-        ))
-    )
 }

@@ -1,218 +1,71 @@
-import {div, span, button, table, tr, td} from './tags'
-import cc from 'classcat'
-import {SEQUENCER_LENGTH, NOTE_NAMES, SEQUENCER_INTERVAL} from './const'
+import {h} from 'hyperapp'
+import {NOTE_NAMES, SEQUENCER_INTERVAL, SEQUENCER_LENGTH} from './const'
+import {module as selection, applySelection} from './selection'
+import playback from './playback'
 
-
-
-function noteName (note) {
-    if (note === null) return ''
-    return NOTE_NAMES[note]
+const noteName = note => {
+    return ((note === null) ? '' : NOTE_NAMES[note])
 }
 
-function  initArray (length, fn) {
-    const arr = []
-    for(var i = 0; i < length; i ++) arr.push(fn(i))
-    return arr
-}
 
-function initGrid () {
-    return initArray(SEQUENCER_LENGTH, _ => initArray(8, _ => null))
-}
 
-export default ($, notes, {onselectVoice, getSelectedVoice, onattack, onrelease, onstop}) => {
-    $.set({
-        grid: notes || initGrid(),
-        selecting: false,
-        selectionStart: null,
-        selectionEnd: null,
-        playing: false,
-        playInterval: null,
-        playRow: 0,
-        recording: false,
-        recordingNote: null,
-    })
+export default {
+    modules: {
+        selection: selection(),
+        playback: playback(),
+    },
+    state: { notes: [...Array(SEQUENCER_LENGTH).keys()].map(_ => [...Array(8).keys()].map(_ => null)) },
+    actions: {
 
-    addEventListener('mouseup', ev => { actions.stopSelecting() })
-    addEventListener('keydown', ev => {
-        if (ev.key !== ' ') return
-        ev.preventDefault(true)
-        actions.clearSelection()
-    })    
+        init: ({onselectvoice, onattackvoice, onstop}) => (state, actions) => {
 
-    const actions = $.with({
-
-        startSelecting (state, rowIndex, colIndex) {
-            if (state.selecting) return
-            onselectVoice(colIndex)
-            $.set({
-                selecting: true,
-                selectionStart: rowIndex,
-                selectionEnd: rowIndex,
+            window.addEventListener('keydown', ev => {
+                if (ev.key !== ' ') return
+                actions.setNote(null)
             })
-        },
 
-        selectRow (state, rowIndex) {
-            if (!state.selecting) return
-            $.set({selectionEnd: rowIndex})
-        },
-
-        stopSelecting (state) {
-            if (!state.selecting) return
-            $.set({selecting: false})
-        },
-
-        resetSelection () {
-            $.set({
-                selecting: false,
-                selectionStart: null,
-                selectionEnd: null,
+            actions.selection.init({
+                onselectcolumn: col => onselectvoice('ABCDEFGH'[col])
             })
-        },
-         
-        isSelected (state, rowIndex, colIndex) {
-            if (state.selectionStart === null) return false
-            if (colIndex !== getSelectedVoice()) return false
-            const from = state.selectionStart
-            const to = state.selectionEnd
-            const [start, end] = from <= to ? [from, to] : [to, from]
-            return rowIndex >= start && rowIndex <= end
-        },
 
-
-        setNoteOnSelection (state, note) {
-            if (state.selectionStart === null) return
-            const newGrid = state.grid.map((row, rowIndex) => {
-                return row.map((val, colIndex) => {
-                    if (actions.isSelected(rowIndex, colIndex)) {
-                        return note
-                    } else {
-                        return val
-                    }
-                })
+            actions.playback.init({
+                onplayrow: actions.playRow,
+                onstop,
             })
-            $.set({ grid: newGrid }),
-            actions.resetSelection()
+            return {onattackvoice}
         },
 
-        clearSelection () {
-            actions.setNoteOnSelection(null)
+        setNote: note => (state, actions) => {
+            actions.selection.reset()
+            return { notes: applySelection(state.selection, state.notes, note) }
         },
 
-        startPlayback (state) {
-            if (state.playing) return
-            $.set({
-                playing: true,
-                playInterval: setInterval(actions.playNext, SEQUENCER_INTERVAL)
-            })
+        playRow: row => (state, actions) => {
+            state.notes[row].forEach((note, col) => state.onattackvoice('ABCDEFGH'[col], note))
         },
-        
-        playNext (state) {
-            const currentIndex = state.playRow
-            const nextIndex = (state.playRow + 1) % SEQUENCER_LENGTH
-            $.set({playRow: nextIndex})
-            const currentRow = state.grid[nextIndex]
-            const prevRow = state.grid[currentIndex]
-            currentRow.forEach((note, voice) => {
-                const prevNote = prevRow[voice]
-                if (prevNote === null) {
-                    if (note !== null) {
-                        onattack(note, voice)
-                    }
-                } else if (note === null) {
-                    onrelease(prevNote, voice)
-                } else if (prevNote !== note) {
-                    onattack(note, voice)
-                }
-            })
-            if (state.recordingNote) {
-                state.grid[currentIndex][getSelectedVoice()] = state.recordingNote
-                $.set({grid: state.grid})
-            }
-        },
+    },
 
-        setPlayTime (state, playTime) {
-            $.set({playTime})
-        },
-
-        stopPlayback (state) {
-            if (!state.playing) return
-            clearInterval(state.playInterval)
-            $.set({
-                playing: false,
-                playInterval: null,
-                recording: false,
-                recordingNote: null,
-            })
-            onstop()
-        },
-
-        startRecording (state) {
-            actions.startPlayback()
-            $.set({recording: true})
-        },
-
-        setRecordedNote (state, note) {
-            if (!state.recording) return
-            $.set({recordingNote: note})
-        }
-    })
-
-
-    return $.with({
-
-        resetSelection () {
-            actions.resetSelection()
-        },
-
-        attack (_, note) {
-            actions.setNoteOnSelection(note)
-            actions.setRecordedNote(note)
-        },
-
-        release () {
-            actions.setRecordedNote(null)
-        },
-
-        getPersistentData (state) {
-            return state.grid
-        },
-
-        grid: state => table({class: 'sequencer'}, state.grid.map((row, rowIndex) =>
-            tr([].concat(
-                td({
-                    class: cc(["time", {playing: state.playTime === rowIndex}]),
-                    onclick: _ => actions.setPlayTime(rowIndex),
-                }, rowIndex),
-                row.map((note, colIndex) => 
-                    td({
-                        class: cc({
-                            playing: state.playRow === rowIndex,
-                            selected: actions.isSelected(rowIndex, colIndex),
-                        }),
-                        onmousedown: ev => {
-                            ev.preventDefault(true)
-                            actions.startSelecting(rowIndex, colIndex)
-                        },
-                        onmousemove: ev => {
-                            ev.preventDefault(true)
-                            actions.selectRow(rowIndex)
-                        },
-                    }, noteName(note))
-                )
-            ))
-        )),
-
-        controls: state => span([
-            button({
-                onmousedown: actions.startRecording,
-                class: cc({active: state.recording}),
-            }, 'Rec'),
-            button({
-                onmousedown: actions.startPlayback,
-                class: cc({active: state.playing}),
-            }, 'Play'),
-            button({onmousedown: actions.stopPlayback}, 'Stop'),
-            button({onmousedown: actions.clearSelection}, 'X'),
-        ]),
+    view: (state, actions, views) => ({
+        Controls: _ => (
+            <span>
+                <views.playback.PlayButton />
+                <views.playback.StopButton />
+                <button onclick={_ => actions.setNote(null)}>X</button>
+            </span>
+        ),
+        Sequencer: _ => (
+            <table class="sequencer">
+                {state.notes.map((vals, row) => (
+                    <tr>
+                        <td  onclick={_ => actions.playback.setRow(row)} class={"time" + (state.playback.row === row ? 'playing' : '')}>{row}</td>
+                        {vals.map((note, col) => (
+                            <views.selection.Decorator row={row} col={col}>
+                                <td class={state.playback.row === row ? 'playing' : false}>{noteName(note)}</td>
+                            </views.selection.Decorator>
+                        ))}
+                    </tr>
+                ))}
+            </table>
+        )
     })
 }

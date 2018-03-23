@@ -4,23 +4,18 @@
   "private": true,
   "description": "",
   "main": "dist/index.html",
-  "dependencies": {
-    "classcat": "^1.0.1",
-    "picodom": "^1.0.2",
-    "rollup": "^0.50.0",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-lessify": "^1.0.2",
-    "rollup-plugin-livereload": "^0.6.0",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-serve": "^0.4.2",
-    "rollup-plugin-uglify": "^2.0.1",
-    "uglify-es": "^3.1.10",
-    "zx-state": "^0.4.0"
-  },
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "build": "parcel build src/index.html",
+    "dev": "parcel --open src/index.html"
   },
   "author": "Zacharias Enochsson",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "classcat": "^1.0.1",
+    "hyperapp": "^1.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "babel-core": "^6.26.0"
+  }
 }

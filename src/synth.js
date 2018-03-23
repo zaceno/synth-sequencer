@@ -1,129 +1,90 @@
-import {span, input, button, div, p} from './tags'
-import cc from 'classcat'
-import {SYNTH_DEFAULTS, OSCILLATOR_TYPES, TUNING_NOTE, TUNING_FREQ} from './const'
+import {h} from 'hyperapp'
+import {SYNTH_DEFAULTS, OSCILLATOR_TYPES} from './const'
+import voices from './voices'
+import OptionButtonSet from './option-button-set'
 
-function noteToHz (note, octave) {
-    return Math.exp ((octave * 12 + note  - TUNING_NOTE) * Math.log(2) / 12) * TUNING_FREQ;
-}
+const ctx = new (window.AudioContext || window.webkitAudioContext)()
 
-const Control = ({label}, children) => p([].concat(
-    span({class: 'label'}, label),
-    children
-))
+const Control = (props, children) => (
+    <p>
+        <span class="label">{props.label}:</span>
+        {children}
+    </p>
+)
 
-const Slider = ({label, value, set, min, max, step}) => Control({label},[
-    input({
-        type: 'range',
-        min: min || 0,
-        max: max,
-        step: step || 'any',
-        value,
-        oninput: ev => set(ev.currentTarget.value)
-    })
-])
+const ControlSlider = props => (
+    <Control label={props.label}>
+        <input
+            type="range"
+            min={props.min || 0}
+            max={props.max}
+            step={props.step || 'any'}
+            value={props.value}
+            oninput={ev => props.set(+ev.currentTarget.value)}
+        />
+    </Control>
+)
 
-const Options = ({value, set, options, label}) =>  Control({label}, span(options.map(o =>
-    button({
-        class: cc({active: value === o }),
-        onclick: _ => set(o)
-    }, o)
-)))
+const ControlOptions = props => (
+    <Control label={props.label}>
+        <OptionButtonSet
+            options={props.options.map(o => ({name: o, value: o}))}
+            value={props.value}
+            set={props.set}
+        />
+    </Control>
+)
 
+export default voice => ({
+    state: {
+        ...SYNTH_DEFAULTS,
+        current: null,
+    },
 
-export default ($, ctx, data) => {
-    $.set(data || SYNTH_DEFAULTS)
-    $.set({playing: null}) //not playing any note at start
-
-    //set up audio nodes
-    const oscillator = ctx.createOscillator()
-    const filter = ctx.createBiquadFilter()
-    const envelope = ctx.createGain()
-    const amplifier = ctx.createGain()
-    oscillator.connect(filter)
-    filter.connect(envelope)
-    envelope.connect(amplifier)
-    amplifier.connect(ctx.destination)
-    
-    //set paramaters on audio Nodes
-    filter.type = 'lowpass'
-    envelope.gain.value = 0
-    oscillator.start()
-    $.with(state => {
-        oscillator.type = state.oscillatorType
-        filter.frequency.value = state.filterCutoff
-        filter.Q.value = state.filterQ
-        amplifier.gain.value = state.ampLevel
-    })()
-
-    //define control widgets for the audio parameters:
-    const controls = $.with((defs => Object.keys(defs).reduce((controls, key) => {
-        const [widget, opts, onset] = defs[key]
-        controls[key] = state => widget(Object.assign(opts, {
-                value: state[key],
-                set: x => {
-                    $.set({[key]: x})
-                    onset && onset(x)
-                }
-        }))
-        return controls
-    }, {}))({
-        octave:         [Slider,  { label: 'Octave',        min: 1, max: 6, step: 1}],
-        attackTime:     [Slider,  { label: 'Attack Time',   max: 0.2}],
-        decayTime:      [Slider,  { label: 'Decay Time',    max: 0.2 }],
-        sustainLevel:   [Slider,  { label: 'Sustain Level', max: 1.0}],
-        releaseTime:    [Slider,  { label: 'Release Time',  max: 0.2 }],
-        oscillatorType: [Options, { label: 'Oscillator',    options: OSCILLATOR_TYPES }, x => oscillator.type = x],
-        filterCutoff:   [Slider,  { label: 'Cutoff',        min: 60, max: 7600}, x => filter.frequency.value = x],
-        filterQ:        [Slider,  { label: 'Resonance',     max: 20}, x => filter.Q.value = x],
-        ampLevel:       [Slider,  { label: 'Gain',          max: 1.0 }, x => amplifier.gain.value = x]
-    }))
-
-    const exposed = $.with({
-
-        attack: (state, note) => {
-            if (state.playing === note) return
-            $.set({playing: note})
-            const freq = noteToHz(note, state.octave)
-            var t = ctx.currentTime
-            oscillator.frequency.cancelScheduledValues(t)
-            envelope.gain.cancelScheduledValues(t)
-            t += 0.01
-            oscillator.frequency.linearRampToValueAtTime(freq, t)
-            envelope.gain.linearRampToValueAtTime(0, t)
-            t += +state.attackTime
-            envelope.gain.linearRampToValueAtTime(1, t)
-            t += +state.decayTime
-            envelope.gain.linearRampToValueAtTime(+state.sustainLevel, t)    
+    actions: {
+        set: x => state => {
+            voices.set(voice, x)
+            return x
         },
-
-        release: (state, note) => {
-            if (state.playing !== note) return
-            $.set({playing: null})
-            var t = ctx.currentTime + 0.01
-            envelope.gain.cancelScheduledValues(t)
-            t += +state.releaseTime
-            envelope.gain.linearRampToValueAtTime(0, t)
+        attack: note => (state, actions) => {
+            if (state.current === note) return
+            if (note === null) {
+                actions.release()
+                return
+            }
+            voices.attack(voice, note)
+            return {current: note}
         },
+        release: _ => state => {
+            if (state.current === null) return 
+            voices.release(voice)
+            return {current: null}
+        },
+    },
 
-        stop: state => exposed.release(state.playing),
-
-        getPersistentData: state => state,
-
-        panel: (state, actions, views) => div({class: 'synth-panel'}, [
-            div({class: 'col-1'}, [
-                controls.oscillatorType(),
-                controls.octave(),
-                controls.filterCutoff(),
-                controls.filterQ()
-            ]),
-            div({class: 'col-2'}, [
-                controls.attackTime(),
-                controls.decayTime(),
-                controls.sustainLevel(),
-                controls.releaseTime(),
-                controls.ampLevel()
-            ])
-        ])
-    })
-    return exposed
-}
+    view: (state, actions, views) => {
+        const controlProps = name => ({
+            value: state[name],
+            set: x => actions.set({[name]: x})
+        })
+        return {
+            ControlPanel: _ => (
+                <div class="synth-panel">
+                    <div class="col-1">
+                        <ControlSlider  label="Octave"     {...controlProps('octave')}         min={1} max={6} step={1} />
+                        <ControlOptions label="Oscillator" {...controlProps('oscillatorType')} options={OSCILLATOR_TYPES} />
+                        <ControlSlider  label="Cutoff"     {...controlProps('filterCutoff')}   min={60} max={7600} />
+                        <ControlSlider  label="Resonance"  {...controlProps('filterQ')}        max={20} />
+                    </div>
+                    <div class="col-2">
+                        <ControlSlider label="Attack time"   {...controlProps('attackTime')}   max={0.2} />
+                        <ControlSlider label="Decay time"    {...controlProps('decayTime')}    max={0.2} />
+                        <ControlSlider label="Sustain level" {...controlProps('sustainLevel')} max={1.0} />
+                        <ControlSlider label="Release time"  {...controlProps('releaseTime')}  max={1.0} />
+                        <ControlSlider label="Gain"          {...controlProps('ampLevel')}     max={1.0} />
+                    </div>
+                </div>
+            )
+        }
+    }
+})

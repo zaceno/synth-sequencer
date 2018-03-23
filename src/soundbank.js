@@ -1,40 +1,40 @@
-import {div, button} from './tags'
-import cc from 'classcat'
+import {h} from 'hyperapp'
 import synth from './synth'
+import OptionButtonSet from './option-button-set'
 
-function initArray (length, fn) {
-    const arr = []
-    for(var i = 0; i < length; i ++) arr.push(fn(i))
-    return arr
-}
-const indices = initArray(8, i => i)
-
-export default ($, data, {onselect}) => {
-    $.set({selected: 0})
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const synths = indices.map(i => $.sync(synth, ctx, data[i]))
-    const getSelectedSynth = $.with(state => synths[state.selected])
-    const select = i => {
-        $.set({selected: i})
-        onselect()
-    }
-    return {
-        getSelected: $.with(state => state.selected),
-        setSelected: i => $.set({selected: i}),
-        getPersistentData: _ => synths.map(synth => synth.getPersistentData()),
-        attackSelected: note => getSelectedSynth().attack(note),
-        releaseSelected: note => getSelectedSynth().release(note),
-        attack: (note, voice) => synths[voice].attack(note),
-        release: (note, voice) => synths[voice].release(note),
-        stopAll: _ => synths.forEach(s => s.stop()),
-        selector: $.with(state =>
-            div({class: 'voice-selector'}, synths.map((_, i) => 
-                button({
-                    onmousedown: _ => select(i),
-                    class: cc({active: state.selected === i})
-                }, 'Voice ' + (i + 1))
-            ))
+export default {
+    modules: {
+        A: synth('A'),
+        B: synth('B'),
+        C: synth('C'),
+        D: synth('D'),
+        E: synth('E'),
+        F: synth('F'),
+        G: synth('G'),
+        H: synth('H'),
+    },
+    state: {selected: 'A'},
+    actions: {
+        init: ({onselect}) => ({onselect}),
+        select: x => ({selected: x}),
+        attack: ({voice, note}) => (_, actions) => actions[voice].attack(note),
+        attackCurrent: note => (state, actions) => actions[state.selected].attack(note),
+        releaseCurrent: note => (state, actions) => actions[state.selected].release(),
+        stopAll: _ => (_, actions) => { 'ABCDEFGH'.split('').forEach(v => actions[v].release() ) }
+    },
+    view: (state, actions, views) => ({
+        ControlPanel: views[state.selected].ControlPanel,
+        Selector: _ => (
+            <div class="voice-selector">
+                <OptionButtonSet
+                    options={'ABCDEFGH'.split('').map(n => ({name: `Voice ${n}`, value:n}))}
+                    set={x => {
+                        actions.select(x)
+                        state.onselect(x)
+                    }}
+                    value={state.selected}
+                />
+            </div>
         ),
-        panel: _ => getSelectedSynth().panel(),
-    }
+    })
 }
