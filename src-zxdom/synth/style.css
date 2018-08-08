@@ -1,0 +1,56 @@
+:global(button){
+    font-weight: bold;
+    background-color: #444;
+    color: #fff;
+    border: 2px black solid;
+    height: 25px; 
+    line-height: 15px;
+}
+
+:global(button.active){
+    background-color: #e9931d;
+    color: #000;
+}
+
+.synthPanel {
+    display:flex;
+    padding: 15px;
+    position: relative;
+    background: #ddd;
+
+}
+
+span.label {
+    display: inline-block;
+    width: 80px;
+}
+.col1 {
+    width: 1px;
+    flex: 1 0 auto;
+}
+.col2 {
+    width: 1px;
+    flex: 1 0 auto;
+}
+
+.synthPanel input[type=range] {
+    -webkit-appearance: none;
+    width: 200px;
+}
+
+.synthPanel input[type=range]::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background-color: #e9931d;
+}
+.synthPanel input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px #000 solid;
+    height: 15px;
+    width: 8px;
+    border-radius: 2px;
+    margin-top: -4px;
+    background: #444;
+}
+

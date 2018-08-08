@@ -1,0 +1,20 @@
+:global(body){
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 13px;
+}
+
+.appLayout {
+    display: flex;
+}
+
+.appLayout .appLayoutLeft {
+    flex: 0 0 800px;
+}
+
+.appLayout .appLayoutRight {
+    flex: 1 0 1px;
+}
+
+.mainPanel {
+    background: #ddd;
+}
