@@ -11,11 +11,18 @@
   "author": "Zacharias Enochsson",
   "license": "MIT",
   "devDependencies": {
-    "classcat": "^1.0.1",
-    "hyperapp": "^1.1.2",
+    "babel-core": "^6.26.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-env": "^1.6.1",
-    "babel-core": "^6.26.0"
+    "classcat": "^1.0.1",
+    "hyperapp": "^1.1.2",
+    "less": "^3.6.0"
+  },
+  "dependencies": {
+    "autoprefixer": "^8.6.5",
+    "postcss-modules": "^1.1.0",
+    "style.css": "^1.0.0",
+    "zxdom": "0.0.21"
   }
 }
