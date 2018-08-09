@@ -1,0 +1,24 @@
+
+.sequencer {
+    border-collapse: collapse;
+}
+
+.sequencer td {
+    border: 1px #ccc solid;
+    width: 50px;
+    text-align: center
+}
+
+.sequencer .selected {
+    background: #e9931d;
+}
+
+.sequencer .time {
+    background: #ccc;
+    text-align: right;
+}
+
+.sequencer .playing {
+    background: #ddd;
+}
+

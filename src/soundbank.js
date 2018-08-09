@@ -1,6 +1,7 @@
 import {h} from 'hyperapp'
 import synth from './synth'
 import OptionButtonSet from './option-button-set'
+import css from './css/soundbank.css'
 
 export default {
     modules: {
@@ -25,7 +26,7 @@ export default {
     view: (state, actions, views) => ({
         ControlPanel: views[state.selected].ControlPanel,
         Selector: _ => (
-            <div class="voice-selector">
+            <div class={css.voiceSelector}>
                 <OptionButtonSet
                     options={'ABCDEFGH'.split('').map(n => ({name: `Voice ${n}`, value:n}))}
                     set={x => {

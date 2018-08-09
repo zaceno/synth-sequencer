@@ -1,0 +1,11 @@
+
+.voiceSelector {
+    display: block;
+    padding: 15px;
+    text-align: right;
+    border-bottom: 1px #555 solid;
+}
+
+.voiceSelector button {
+    margin-left: 10px;
+}

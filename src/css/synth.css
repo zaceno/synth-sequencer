@@ -1,0 +1,46 @@
+
+
+.synthPanel {
+    display:flex;
+    padding: 15px;
+    position: relative;
+}
+
+.synthPanel .label {
+    display: inline-block;
+    width: 80px;
+}
+
+.synthPanel .col1{
+    width: 1px;
+    flex: 1 0 auto;
+}
+
+.synthPanel .col2 {
+    width: 1px;
+    flex: 1 0 auto;
+}
+
+
+.synthPanel input[type=range] {
+    -webkit-appearance: none;
+    width: 200px;
+}
+
+.synthPanel input[type=range]::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background-color: #e9931d;  
+}
+
+.synthPanel input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: 1px #000 solid;
+    height: 15px;
+    width: 8px;
+    border-radius: 2px;
+    margin-top: -4px;
+    background: #444;
+}
+

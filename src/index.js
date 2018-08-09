@@ -1,3 +1,4 @@
+import './css/base.css'
 import {app} from 'hyperapp'
 import combineModules from './lib/combine-modules'
 import main from './main'

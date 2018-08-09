@@ -2,6 +2,8 @@ import {h} from 'hyperapp'
 import {NOTE_NAMES, SEQUENCER_INTERVAL, SEQUENCER_LENGTH} from './const'
 import {module as selection, applySelection} from './selection'
 import playback from './playback'
+import Button from './button'
+import css from './css/sequencer.css'
 
 const noteName = note => {
     return ((note === null) ? '' : NOTE_NAMES[note])
@@ -41,7 +43,7 @@ export default {
         },
 
         playRow: row => (state, actions) => {
-            state.notes[row].forEach((note, col) => state.onattackvoice('ABCDEFGH'[col], note))
+            state.notes[row].forEach((note, col) => state.onattackvoice({voice: 'ABCDEFGH'[col], note}))
         },
     },
 
@@ -50,17 +52,17 @@ export default {
             <span>
                 <views.playback.PlayButton />
                 <views.playback.StopButton />
-                <button onclick={_ => actions.setNote(null)}>X</button>
+                <Button onclick={_ => actions.setNote(null)}>X</Button>
             </span>
         ),
         Sequencer: _ => (
-            <table class="sequencer">
+            <table class={css.sequencer}>
                 {state.notes.map((vals, row) => (
                     <tr>
-                        <td  onclick={_ => actions.playback.setRow(row)} class={"time" + (state.playback.row === row ? 'playing' : '')}>{row}</td>
+                        <td  onclick={_ => actions.playback.setRow(row)} class={css.time + (state.playback.row === row ? css.playing : '')}>{row}</td>
                         {vals.map((note, col) => (
                             <views.selection.Decorator row={row} col={col}>
-                                <td class={state.playback.row === row ? 'playing' : false}>{noteName(note)}</td>
+                                <td class={state.playback.row === row ? css.playing : false}>{noteName(note)}</td>
                             </views.selection.Decorator>
                         ))}
                     </tr>

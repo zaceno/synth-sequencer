@@ -98,215 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({3:[function(require,module,exports) {
-
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-/*
-TODO refactor tests to be more descriptive of the api and less "incrementally built up"
-
-TODO: Optimize: textnodes are always inserted, then the old ones removed. If they're the same string we could leave them alone
-TODO: Optimize: If keyed nodes move down, we will instead move *up* every subsequent nodes one step. COuld be optimized
-by just building a list of moves, and notice that a series of up-moves of one, could be replaced by a single
-down move (maybe?)
-*/
-
-function h(type, attributes, ...children) {
-    attributes = attributes || {};
-    children = [].concat(...[].concat(...children)).filter(c => c !== false && c != null);
-    return typeof type === 'function' ? type(attributes, children) : { type, attributes, children };
-}
-
-function mount(vnode, container) {
-    const el = make(vnode);
-    container.innerHTML = '';
-    container.appendChild(el);
-    return el;
-}
-
-function define(func, data) {
-    return { func, data };
-}
-
-function update(view, data) {
-    view.data = data;
-    view.instances = view.instances || []; //common pattern with makeInstance --> factor out
-    view.instances.forEach(inst => patchInstance(inst.el, view, inst.attributes, inst.children));
-}
-
-//-------------
-
-function make(vnode, svg) {
-    if (vnode.func) return make(h(vnode));
-    if (!vnode.type) return document.createTextNode(vnode);
-    return (vnode.type.func ? makeInstance : makeElement)(vnode, svg);
-}
-
-function patch(el, oldnode, newnode) {
-    if (oldnode.type && oldnode.type === newnode.type) {
-        if (oldnode.type.func) {
-            el = patchInstance(el, newnode.type, newnode.attributes, newnode.children);
-        } else {
-            el = patchElement(el, oldnode.attributes, oldnode.children, newnode.attributes, newnode.children);
-        }
-    } else {
-        el = replace(el, oldnode, newnode);
-    }
-    return el;
-}
-
-function remove(el, oldvnode) {
-    willRemove(el, oldvnode);
-    el.parentNode && el.parentNode.removeChild(el);
-    return true;
-}
-
-function replace(el, oldvnode, newvnode) {
-    const newel = make(newvnode);
-    willRemove(el, oldvnode);
-    el.parentNode && el.parentNode.replaceChild(newel, el);
-    return newel;
-}
-
-function willRemove(el, oldvnode) {
-    if (!oldvnode.type) return false;
-    if (oldvnode.type.func) return willRemoveInstance(el, oldvnode);
-    return willRemoveElement(el, oldvnode);
-}
-
-//-------------
-
-function makeInstance({ type, attributes, children }) {
-    const vnode = vnodeForView(type, attributes, children);
-    const el = make(vnode);
-    type.instances = type.instances || [];
-    type.instances.push({ el, vnode, attributes, children });
-    return el;
-}
-
-function patchInstance(oldel, view, attributes, children) {
-    function getKey(node) {
-        const attr = node.attributes;
-        return attr && attr.key ? attr.key : null;
-    }
-    const vnode = vnodeForView(view, attributes, children);
-    const inst = getInstanceIndex(view, oldel);
-    const oldvnode = view.instances[inst].vnode;
-    const el = (getKey(oldvnode) === getKey(vnode) ? patch : replace)(oldel, oldvnode, vnode);
-    view.instances.splice(inst, 1, { el, vnode, attributes, children });
-    return el;
-}
-
-function willRemoveInstance(el, { type }) {
-    const index = getInstanceIndex(type, el);
-    const instance = type.instances[index];
-    type.instances.splice(index, 1);
-    return willRemove(el, instance.vnode);
-}
-
-function getInstanceIndex(type, el) {
-    return seekIndex(type.instances, inst => inst.el === el);
-}
-
-function vnodeForView(type, attributes, children) {
-    return type.func(Object.assign({}, attributes, type.data), children);
-}
-
-//-------------
-
-function makeElement({ type, attributes, children }, svg = false) {
-    svg = svg || type === 'svg';
-    const el = svg ? document.createElementNS('http://www.w3.org/2000/svg', type) : document.createElement(type);
-    updateAttributes(el, {}, attributes);
-    children.forEach(chnode => el.appendChild(make(chnode, svg)));
-    attributes.oncreate && attributes.oncreate(el);
-    return el;
-}
-
-function patchElement(el, oldattr, oldch, newattr, newch) {
-    updateAttributes(el, oldattr, newattr);
-    patchChildren(el, oldch, newch);
-    newattr.onupdate && newattr.onupdate(el);
-    return el;
-}
-
-function willRemoveElement(el, { attributes, children }) {
-    children.forEach((c, i) => willRemove(el.childNodes[i], c));
-    return attributes.onremove && attributes.onremove(el, el.parentNode);
-}
-
-//-----------------
-
-function patchChildren(parent, oldch, newch) {
-    oldch = oldch.slice(); //copy, since we'll be mutating it further down.
-    let n = 0;
-    while (n < oldch.length && n < newch.length) {
-        let o = seekNode(oldch, newch[n], n);
-        if (o < 0) {
-            parent.insertBefore(make(newch[n]), parent.childNodes[n]);
-            oldch.splice(n, 0, '');
-        } else {
-            if (o != n) {
-                parent.insertBefore(parent.childNodes[o], parent.childNodes[n]);
-                oldch.splice(n, 0, oldch.splice(o, 1)[0]);
-            }
-            patch(parent.childNodes[n], oldch[n], newch[n]);
-        }
-        n++;
-    }
-    while (n < oldch.length) {
-        const didRemove = remove(parent.childNodes[n], oldch[n]);
-        if (!didRemove) n++;else oldch.splice(n, 1);
-    }
-    while (n < newch.length) parent.appendChild(make(newch[n++]));
-}
-
-function seekNode(list, node, start) {
-    const sought = seekId(node);
-    return seekIndex(list, item => seekId(item) === sought, start);
-}
-
-function seekId(node) {
-    return node.type ? node.attributes.key || node.type : node;
-}
-
-function updateAttributes(el, oldattr, newattr) {
-    Object.keys(oldattr).forEach(name => {
-        if (newattr[name] == null) setAttribute(el, name);
-    });
-    Object.keys(newattr).forEach(name => {
-        setAttribute(el, name, oldattr[name], newattr[name]);
-    });
-}
-
-function setAttribute(el, name, oldval, val) {
-    if (name === 'key' || name === 'value' || name === 'checked' || name.substr(0, 2) === 'on') {
-        el[name] = val;
-    } else if (val == null || val === false) {
-        el.removeAttribute(name);
-    } else if (oldval !== val) {
-        el.setAttribute(name, val);
-    }
-}
-
-//----------------
-
-function seekIndex(list, fn, start = 0) {
-    return list.reduce((found, item, index) => index < start || found > -1 || !fn(item) ? found : index, -1);
-}
-
-//----------------
-
-exports.h = h;
-exports.patch = patch;
-exports.make = make;
-exports.mount = mount;
-exports.define = define;
-exports.update = update;
-},{}],12:[function(require,module,exports) {
+})({22:[function(require,module,exports) {
 var bundleURL = null;
 function getBundleURLCached() {
   if (!bundleURL) {
@@ -367,25 +159,400 @@ function reloadCSS() {
 }
 
 module.exports = reloadCSS;
-},{"./bundle-url":12}],20:[function(require,module,exports) {
+},{"./bundle-url":22}],3:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
-      module.exports = {
-  "appLayout": "style_appLayout_bpXxk",
-  "appLayoutLeft": "style_appLayoutLeft_3xXzg",
-  "appLayoutRight ": "style_appLayoutRight _3-0bH",
-  "mainPanel": "style_mainPanel_3xjJH"
-};
-},{"_css_loader":11}],10:[function(require,module,exports) {
+      module.exports = {};
+},{"_css_loader":11}],6:[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = cat;
-function cat(classes, prefix) {
+exports.h = h;
+exports.app = app;
+function h(name, attributes) {
+  var rest = [];
+  var children = [];
+  var length = arguments.length;
+
+  while (length-- > 2) rest.push(arguments[length]);
+
+  while (rest.length) {
+    var node = rest.pop();
+    if (node && node.pop) {
+      for (length = node.length; length--;) {
+        rest.push(node[length]);
+      }
+    } else if (node != null && node !== true && node !== false) {
+      children.push(node);
+    }
+  }
+
+  return typeof name === "function" ? name(attributes || {}, children) : {
+    nodeName: name,
+    attributes: attributes || {},
+    children: children,
+    key: attributes && attributes.key
+  };
+}
+
+function app(state, actions, view, container) {
+  var map = [].map;
+  var rootElement = container && container.children[0] || null;
+  var oldNode = rootElement && recycleElement(rootElement);
+  var lifecycle = [];
+  var skipRender;
+  var isRecycling = true;
+  var globalState = clone(state);
+  var wiredActions = wireStateToActions([], globalState, clone(actions));
+
+  scheduleRender();
+
+  return wiredActions;
+
+  function recycleElement(element) {
+    return {
+      nodeName: element.nodeName.toLowerCase(),
+      attributes: {},
+      children: map.call(element.childNodes, function (element) {
+        return element.nodeType === 3 // Node.TEXT_NODE
+        ? element.nodeValue : recycleElement(element);
+      })
+    };
+  }
+
+  function resolveNode(node) {
+    return typeof node === "function" ? resolveNode(node(globalState, wiredActions)) : node != null ? node : "";
+  }
+
+  function render() {
+    skipRender = !skipRender;
+
+    var node = resolveNode(view);
+
+    if (container && !skipRender) {
+      rootElement = patch(container, rootElement, oldNode, oldNode = node);
+    }
+
+    isRecycling = false;
+
+    while (lifecycle.length) lifecycle.pop()();
+  }
+
+  function scheduleRender() {
+    if (!skipRender) {
+      skipRender = true;
+      setTimeout(render);
+    }
+  }
+
+  function clone(target, source) {
+    var out = {};
+
+    for (var i in target) out[i] = target[i];
+    for (var i in source) out[i] = source[i];
+
+    return out;
+  }
+
+  function setPartialState(path, value, source) {
+    var target = {};
+    if (path.length) {
+      target[path[0]] = path.length > 1 ? setPartialState(path.slice(1), value, source[path[0]]) : value;
+      return clone(source, target);
+    }
+    return value;
+  }
+
+  function getPartialState(path, source) {
+    var i = 0;
+    while (i < path.length) {
+      source = source[path[i++]];
+    }
+    return source;
+  }
+
+  function wireStateToActions(path, state, actions) {
+    for (var key in actions) {
+      typeof actions[key] === "function" ? function (key, action) {
+        actions[key] = function (data) {
+          var result = action(data);
+
+          if (typeof result === "function") {
+            result = result(getPartialState(path, globalState), actions);
+          }
+
+          if (result && result !== (state = getPartialState(path, globalState)) && !result.then // !isPromise
+          ) {
+              scheduleRender(globalState = setPartialState(path, clone(state, result), globalState));
+            }
+
+          return result;
+        };
+      }(key, actions[key]) : wireStateToActions(path.concat(key), state[key] = clone(state[key]), actions[key] = clone(actions[key]));
+    }
+
+    return actions;
+  }
+
+  function getKey(node) {
+    return node ? node.key : null;
+  }
+
+  function eventListener(event) {
+    return event.currentTarget.events[event.type](event);
+  }
+
+  function updateAttribute(element, name, value, oldValue, isSvg) {
+    if (name === "key") {} else if (name === "style") {
+      for (var i in clone(oldValue, value)) {
+        var style = value == null || value[i] == null ? "" : value[i];
+        if (i[0] === "-") {
+          element[name].setProperty(i, style);
+        } else {
+          element[name][i] = style;
+        }
+      }
+    } else {
+      if (name[0] === "o" && name[1] === "n") {
+        name = name.slice(2);
+
+        if (element.events) {
+          if (!oldValue) oldValue = element.events[name];
+        } else {
+          element.events = {};
+        }
+
+        element.events[name] = value;
+
+        if (value) {
+          if (!oldValue) {
+            element.addEventListener(name, eventListener);
+          }
+        } else {
+          element.removeEventListener(name, eventListener);
+        }
+      } else if (name in element && name !== "list" && name !== "type" && name !== "draggable" && name !== "spellcheck" && name !== "translate" && !isSvg) {
+        element[name] = value == null ? "" : value;
+      } else if (value != null && value !== false) {
+        element.setAttribute(name, value);
+      }
+
+      if (value == null || value === false) {
+        element.removeAttribute(name);
+      }
+    }
+  }
+
+  function createElement(node, isSvg) {
+    var element = typeof node === "string" || typeof node === "number" ? document.createTextNode(node) : (isSvg = isSvg || node.nodeName === "svg") ? document.createElementNS("http://www.w3.org/2000/svg", node.nodeName) : document.createElement(node.nodeName);
+
+    var attributes = node.attributes;
+    if (attributes) {
+      if (attributes.oncreate) {
+        lifecycle.push(function () {
+          attributes.oncreate(element);
+        });
+      }
+
+      for (var i = 0; i < node.children.length; i++) {
+        element.appendChild(createElement(node.children[i] = resolveNode(node.children[i]), isSvg));
+      }
+
+      for (var name in attributes) {
+        updateAttribute(element, name, attributes[name], null, isSvg);
+      }
+    }
+
+    return element;
+  }
+
+  function updateElement(element, oldAttributes, attributes, isSvg) {
+    for (var name in clone(oldAttributes, attributes)) {
+      if (attributes[name] !== (name === "value" || name === "checked" ? element[name] : oldAttributes[name])) {
+        updateAttribute(element, name, attributes[name], oldAttributes[name], isSvg);
+      }
+    }
+
+    var cb = isRecycling ? attributes.oncreate : attributes.onupdate;
+    if (cb) {
+      lifecycle.push(function () {
+        cb(element, oldAttributes);
+      });
+    }
+  }
+
+  function removeChildren(element, node) {
+    var attributes = node.attributes;
+    if (attributes) {
+      for (var i = 0; i < node.children.length; i++) {
+        removeChildren(element.childNodes[i], node.children[i]);
+      }
+
+      if (attributes.ondestroy) {
+        attributes.ondestroy(element);
+      }
+    }
+    return element;
+  }
+
+  function removeElement(parent, element, node) {
+    function done() {
+      parent.removeChild(removeChildren(element, node));
+    }
+
+    var cb = node.attributes && node.attributes.onremove;
+    if (cb) {
+      cb(element, done);
+    } else {
+      done();
+    }
+  }
+
+  function patch(parent, element, oldNode, node, isSvg) {
+    if (node === oldNode) {} else if (oldNode == null || oldNode.nodeName !== node.nodeName) {
+      var newElement = createElement(node, isSvg);
+      parent.insertBefore(newElement, element);
+
+      if (oldNode != null) {
+        removeElement(parent, element, oldNode);
+      }
+
+      element = newElement;
+    } else if (oldNode.nodeName == null) {
+      element.nodeValue = node;
+    } else {
+      updateElement(element, oldNode.attributes, node.attributes, isSvg = isSvg || node.nodeName === "svg");
+
+      var oldKeyed = {};
+      var newKeyed = {};
+      var oldElements = [];
+      var oldChildren = oldNode.children;
+      var children = node.children;
+
+      for (var i = 0; i < oldChildren.length; i++) {
+        oldElements[i] = element.childNodes[i];
+
+        var oldKey = getKey(oldChildren[i]);
+        if (oldKey != null) {
+          oldKeyed[oldKey] = [oldElements[i], oldChildren[i]];
+        }
+      }
+
+      var i = 0;
+      var k = 0;
+
+      while (k < children.length) {
+        var oldKey = getKey(oldChildren[i]);
+        var newKey = getKey(children[k] = resolveNode(children[k]));
+
+        if (newKeyed[oldKey]) {
+          i++;
+          continue;
+        }
+
+        if (newKey != null && newKey === getKey(oldChildren[i + 1])) {
+          if (oldKey == null) {
+            removeElement(element, oldElements[i], oldChildren[i]);
+          }
+          i++;
+          continue;
+        }
+
+        if (newKey == null || isRecycling) {
+          if (oldKey == null) {
+            patch(element, oldElements[i], oldChildren[i], children[k], isSvg);
+            k++;
+          }
+          i++;
+        } else {
+          var keyedNode = oldKeyed[newKey] || [];
+
+          if (oldKey === newKey) {
+            patch(element, keyedNode[0], keyedNode[1], children[k], isSvg);
+            i++;
+          } else if (keyedNode[0]) {
+            patch(element, element.insertBefore(keyedNode[0], oldElements[i]), keyedNode[1], children[k], isSvg);
+          } else {
+            patch(element, oldElements[i], null, children[k], isSvg);
+          }
+
+          newKeyed[newKey] = children[k];
+          k++;
+        }
+      }
+
+      while (i < oldChildren.length) {
+        if (getKey(oldChildren[i]) == null) {
+          removeElement(element, oldElements[i], oldChildren[i]);
+        }
+        i++;
+      }
+
+      for (var i in oldKeyed) {
+        if (!newKeyed[i]) {
+          removeElement(element, oldKeyed[i][0], oldKeyed[i][1]);
+        }
+      }
+    }
+    return element;
+  }
+}
+},{}],5:[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = combineModules;
+function combineModules(tree) {
+    var modules = {};
+
+    for (var name in tree.modules || {}) {
+        modules[name] = combineModules(tree.modules[name]);
+    }
+
+    var state = tree.state || {};
+    var actions = tree.actions || {};
+
+    for (var _name in modules) {
+        state[_name] = modules[_name].state || {};
+        actions[_name] = modules[_name].actions || {};
+    }
+
+    var view = function view(state, actions) {
+        var subviews = {};
+        for (var _name2 in modules) {
+            if (!modules[_name2].view) continue;
+            subviews[_name2] = modules[_name2].view(state[_name2], actions[_name2]);
+        }
+        return tree.view && tree.view(state, actions, subviews);
+    };
+
+    return { state: state, actions: actions, view: view };
+}
+},{}],7:[function(require,module,exports) {
+
+        var reloadCSS = require('_css_loader');
+        module.hot.dispose(reloadCSS);
+        module.hot.accept(reloadCSS);
+      module.exports = {
+  "container": "main_container_2MJY_",
+  "left": "main_left_37YCB",
+  "right ": "main_right _2uDWc",
+  "mainPanel": "main_mainPanel_3gYtz"
+};
+},{"_css_loader":11}],21:[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = cc;
+function cc(classes, prefix) {
   var value;
   var className = "";
   var type = typeof classes;
@@ -398,33 +565,33 @@ function cat(classes, prefix) {
 
   if (Array.isArray(classes) && classes.length) {
     for (var i = 0, len = classes.length; i < len; i++) {
-      if (value = cat(classes[i], prefix)) {
+      if (value = cc(classes[i], prefix)) {
         className += (className && prefix) + value;
       }
     }
   } else {
     for (var i in classes) {
       if (classes.hasOwnProperty(i) && (value = classes[i])) {
-        className += (className && prefix) + i + (typeof value === "object" ? cat(value, prefix + i) : "");
+        className += (className && prefix) + i + (typeof value === "object" ? cc(value, prefix + i) : "");
       }
     }
   }
 
   return className;
 }
-},{}],6:[function(require,module,exports) {
+},{}],17:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
       module.exports = {
-  "keyboard": "style_keyboard_23elZ",
-  "clav": "style_clav_3XbDW",
-  "black": "style_black_DHM8A",
-  "pressed": "style_pressed_2eMxS",
-  "char": "style_char_GRgGj"
+  "keyboard": "keyboard_keyboard_3VA4j",
+  "clav": "keyboard_clav_26Iqb",
+  "black": "keyboard_black_3Cgo8",
+  "pressed": "keyboard_pressed_1cGZj",
+  "char": "keyboard_char_3m2iF"
 };
-},{"_css_loader":11}],7:[function(require,module,exports) {
+},{"_css_loader":11}],12:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -453,93 +620,540 @@ var OSCILLATOR_TYPES = exports.OSCILLATOR_TYPES = ['sawtooth', 'square', 'triang
 
 var TUNING_FREQ = exports.TUNING_FREQ = 440;
 var TUNING_NOTE = exports.TUNING_NOTE = 69;
-},{}],4:[function(require,module,exports) {
-
+},{}],8:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-exports.default = function (_ref) {
-    var onattack = _ref.onattack,
-        onrelease = _ref.onrelease;
-
-
-    var pressed = null;
-
-    var attack = function attack(char) {
-        var note = _const.KEYBOARD_KEYS.indexOf(char);
-        if (note === -1) return;
-        if (char === pressed) return;
-        pressed = char;
-        (0, _zxdom.update)(view);
-        onattack(note);
-    };
-
-    var release = function release(char) {
-        var note = _const.KEYBOARD_KEYS.indexOf(char);
-        if (note === -1) return;
-        if (char !== pressed) return;
-        pressed = null;
-        (0, _zxdom.update)(view);
-        onrelease(note);
-    };
-
-    var view = (0, _zxdom.define)(function (_) {
-        return (0, _zxdom.h)(
-            'div',
-            { oncreate: function oncreate(el) {
-                    addEventListener('keydown', function (ev) {
-                        return attack(ev.key) && ev.preventDefault(true);
-                    });
-                    addEventListener('keyup', function (ev) {
-                        return release(ev.key) && ev.preventDefault(true);
-                    });
-                }, 'class': _style2.default.keyboard, key: 'keyboard' },
-            _const.KEYBOARD_KEYS.map(function (char) {
-                var _cc;
-
-                return (0, _zxdom.h)(
-                    'div',
-                    {
-                        'class': (0, _classcat2.default)((_cc = {}, _defineProperty(_cc, _style2.default.clav, true), _defineProperty(_cc, _style2.default.black, _const.KEYBOARD_BLACK_KEYS.indexOf(char) >= 0), _defineProperty(_cc, _style2.default.pressed, char === pressed), _cc)),
-                        onmousedown: function onmousedown(_) {
-                            return attack(char);
-                        },
-                        onmouseup: function onmouseup(_) {
-                            return release(char);
-                        }
-                    },
-                    (0, _zxdom.h)(
-                        'span',
-                        { 'class': _style2.default.char },
-                        char.toUpperCase()
-                    )
-                );
-            })
-        );
-    });
-
-    return { Keyboard: view };
-};
-
-var _zxdom = require('zxdom');
+var _hyperapp = require('hyperapp');
 
 var _classcat = require('classcat');
 
 var _classcat2 = _interopRequireDefault(_classcat);
 
-var _style = require('./style.css');
+var _keyboard = require('./css/keyboard.css');
 
-var _style2 = _interopRequireDefault(_style);
+var _keyboard2 = _interopRequireDefault(_keyboard);
 
-var _const = require('../const');
+var _const = require('./const');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-},{"zxdom":3,"classcat":10,"./style.css":6,"../const":7}],9:[function(require,module,exports) {
+
+var isBlack = function isBlack(char) {
+    return _const.KEYBOARD_BLACK_KEYS.indexOf(char) > -1;
+};
+
+var _Keyboard = function _Keyboard(_ref) {
+    var pressed = _ref.pressed,
+        attack = _ref.attack,
+        release = _ref.release;
+    return (0, _hyperapp.h)(
+        'div',
+        { 'class': _keyboard2.default.keyboard, key: 'keyboard' },
+        _const.KEYBOARD_KEYS.map(function (char) {
+            var _ref2;
+
+            return (0, _hyperapp.h)(
+                'div',
+                {
+                    'class': (0, _classcat2.default)([_keyboard2.default.clav, (_ref2 = {}, _defineProperty(_ref2, _keyboard2.default.black, isBlack(char)), _defineProperty(_ref2, _keyboard2.default.pressed, char === pressed), _ref2)]),
+                    onmousedown: function onmousedown(ev) {
+                        return attack(char);
+                    },
+                    onmouseup: function onmouseup(ev) {
+                        return release(char);
+                    }
+                },
+                (0, _hyperapp.h)(
+                    'span',
+                    { 'class': _keyboard2.default.char },
+                    char.toUpperCase()
+                )
+            );
+        })
+    );
+};
+
+exports.default = {
+    state: {
+        pressed: null
+    },
+
+    actions: {
+
+        init: function init(_ref3) {
+            var onattack = _ref3.onattack,
+                onrelease = _ref3.onrelease;
+            return function (state, actions) {
+                addEventListener('keydown', function (ev) {
+                    return actions.attack(ev.key) && ev.preventDefault(true);
+                });
+                addEventListener('keyup', function (ev) {
+                    return actions.release(ev.key) && ev.preventDefault(true);
+                });
+                return {
+                    onattack: onattack || function (_) {},
+                    onrelease: onrelease || function (_) {}
+                };
+            };
+        },
+
+        attack: function attack(char) {
+            return function (state) {
+                var note = _const.KEYBOARD_KEYS.indexOf(char);
+                if (note === -1) return;
+                if (char === state.pressed) return;
+                if (char !== state.pressed) state.onattack(note);
+                return { pressed: char };
+            };
+        },
+
+        release: function release(char) {
+            return function (state) {
+                var note = _const.KEYBOARD_KEYS.indexOf(char);
+                if (note === -1) return;
+                if (char !== state.pressed) return;
+                if (char === state.pressed) state.onrelease(note);
+                return { pressed: null };
+            };
+        }
+    },
+
+    view: function view(state, actions) {
+        return {
+            Keyboard: function Keyboard(_) {
+                return _Keyboard({
+                    attack: actions.attack,
+                    release: actions.release,
+                    pressed: state.pressed
+                });
+            }
+        };
+    }
+};
+},{"hyperapp":6,"classcat":21,"./css/keyboard.css":17,"./const":12}],26:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+function stackHandlers(attr, name, handler) {
+    var orig = attr[name];
+    attr[name] = !orig ? handler : function () {
+        orig.apply(undefined, arguments);
+        fn.apply(undefined, arguments);
+    };
+}
+
+exports.default = function (getDeco) {
+    return function (attr, children) {
+        var decorations = getDeco(attr);
+        return children.map(function (child) {
+            if (!child.attributes) return child;
+            for (var name in decorations) {
+                if (name === 'class') {
+                    child.attributes.class = child.attributes.class + ' ' + decorations.class;
+                } else if (name.substr(0, 2) === 'on') {
+                    stackHandlers(child.attributes, name, decorations[name]);
+                } else {
+                    child.attributes[name] = decorations[name];
+                }
+            }
+            return child;
+        });
+    };
+};
+},{}],16:[function(require,module,exports) {
+
+        var reloadCSS = require('_css_loader');
+        module.hot.dispose(reloadCSS);
+        module.hot.accept(reloadCSS);
+      module.exports = {
+  "sequencer": "sequencer_sequencer_EqxkS",
+  "selected": "sequencer_selected_18jv1",
+  "time": "sequencer_time_hwPCS",
+  "playing": "sequencer_playing_19tq6"
+};
+},{"_css_loader":11}],13:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.module = exports.applySelection = undefined;
+
+var _decorator = require('./lib/decorator');
+
+var _decorator2 = _interopRequireDefault(_decorator);
+
+var _sequencer = require('./css/sequencer.css');
+
+var _sequencer2 = _interopRequireDefault(_sequencer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var isSelected = function isSelected(state, row, col) {
+    if (state.start === null) return false;
+    var r = col === state.column && row >= state.start && row <= state.end;
+    return r;
+};
+
+var applySelection = exports.applySelection = function applySelection(state, notes, note) {
+    if (state.start === null) return notes;
+    return notes.map(function (rowvals, row) {
+        return rowvals.map(function (val, col) {
+            return isSelected(state, row, col) ? note : val;
+        });
+    });
+};
+
+var _module = function _module(_) {
+    return {
+
+        state: {
+            anchor: null,
+            column: null,
+            start: null,
+            end: null
+        },
+
+        actions: {
+            _set: function _set(x) {
+                return x;
+            },
+            init: function init(_ref) {
+                var onselectcolumn = _ref.onselectcolumn;
+                return function (state, actions) {
+                    actions._set({ onselectcolumn: onselectcolumn });
+                    actions.reset();
+                };
+            },
+            start: function start(_ref2) {
+                var row = _ref2.row,
+                    col = _ref2.col;
+                return function (state) {
+                    state.onselectcolumn(col);
+                    return {
+                        anchor: row,
+                        column: col,
+                        start: row,
+                        end: row
+                    };
+                };
+            },
+            select: function select(_ref3) {
+                var row = _ref3.row;
+                return function (state) {
+                    if (state.anchor === null) return;
+                    return row < state.anchor ? { start: row, end: state.anchor } : { start: state.anchor, end: row };
+                };
+            },
+            end: function end(_ref4) {
+                var row = _ref4.row;
+                return { anchor: null };
+            },
+            reset: function reset(_) {
+                return {
+                    anchor: null,
+                    column: null,
+                    start: null,
+                    end: null
+                };
+            }
+        },
+
+        view: function view(state, actions) {
+            return {
+                Decorator: (0, _decorator2.default)(function (_ref5) {
+                    var row = _ref5.row,
+                        col = _ref5.col;
+                    return {
+                        onmousedown: function onmousedown(ev) {
+                            ev.preventDefault(true);
+                            actions.start({ row: row, col: col });
+                        },
+                        onmouseup: function onmouseup(ev) {
+                            ev.preventDefault(true);
+                            actions.end({ row: row, col: col });
+                        },
+                        onmouseover: function onmouseover(ev) {
+                            ev.preventDefault(true);
+                            actions.select({ row: row, col: col });
+                        },
+                        class: isSelected(state, row, col) ? _sequencer2.default.selected : ''
+                    };
+                })
+            };
+        }
+    };
+};
+exports.module = _module;
+},{"./lib/decorator":26,"./css/sequencer.css":16}],23:[function(require,module,exports) {
+
+        var reloadCSS = require('_css_loader');
+        module.hot.dispose(reloadCSS);
+        module.hot.accept(reloadCSS);
+      module.exports = {
+  "active": "button_active_75kSy"
+};
+},{"_css_loader":11}],15:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _hyperapp = require('hyperapp');
+
+var _button = require('./css/button.css');
+
+var _button2 = _interopRequireDefault(_button);
+
+var _classcat = require('classcat');
+
+var _classcat2 = _interopRequireDefault(_classcat);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+exports.default = function (props, children) {
+    var active = props.active;
+    delete props.active;
+    var cmd = props.do;
+    delete props.do;
+    return (0, _hyperapp.h)(
+        'button',
+        _extends({}, props, {
+            'class': (0, _classcat2.default)(_defineProperty({}, _button2.default.active, active)),
+            onmousedown: cmd
+        }),
+        children
+    );
+};
+},{"hyperapp":6,"./css/button.css":23,"classcat":21}],14:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _hyperapp = require('hyperapp');
+
+var _const = require('./const');
+
+var _button = require('./button');
+
+var _button2 = _interopRequireDefault(_button);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (_) {
+    return {
+        state: {
+            playing: false,
+            interval: null,
+            row: null
+        },
+
+        actions: {
+            init: function init(_ref) {
+                var onplayrow = _ref.onplayrow,
+                    onstop = _ref.onstop;
+                return { onplayrow: onplayrow, onstop: onstop };
+            },
+            setRow: function setRow(row) {
+                return { row: row };
+            },
+            next: function next(_) {
+                return function (state, actions) {
+                    var row = (state.row + 1) % _const.SEQUENCER_LENGTH;
+                    state.onplayrow(row);
+                    actions.setRow(row);
+                };
+            },
+            play: function play(_) {
+                return function (state, actions) {
+                    if (state.interval) return;
+                    actions.setRow((state.row || 0) - 1);
+                    return { playing: true, interval: setInterval(actions.next, _const.SEQUENCER_INTERVAL) };
+                };
+            },
+            stop: function stop(_) {
+                return function (state, actions) {
+                    state.interval && clearInterval(state.interval);
+                    state.onstop();
+                    return { playing: false, interval: null };
+                };
+            }
+        },
+
+        view: function view(state, actions) {
+            return {
+                PlayButton: function PlayButton(_) {
+                    return (0, _hyperapp.h)(
+                        _button2.default,
+                        {
+                            'do': actions.play,
+                            active: state.interval
+                        },
+                        'Play'
+                    );
+                },
+                StopButton: function StopButton(_) {
+                    return (0, _hyperapp.h)(
+                        _button2.default,
+                        { 'do': actions.stop },
+                        'Stop'
+                    );
+                }
+            };
+        }
+    };
+};
+},{"hyperapp":6,"./const":12,"./button":15}],9:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _hyperapp = require('hyperapp');
+
+var _const = require('./const');
+
+var _selection = require('./selection');
+
+var _playback = require('./playback');
+
+var _playback2 = _interopRequireDefault(_playback);
+
+var _button = require('./button');
+
+var _button2 = _interopRequireDefault(_button);
+
+var _sequencer = require('./css/sequencer.css');
+
+var _sequencer2 = _interopRequireDefault(_sequencer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var noteName = function noteName(note) {
+    return note === null ? '' : _const.NOTE_NAMES[note];
+};
+
+exports.default = {
+    modules: {
+        selection: (0, _selection.module)(),
+        playback: (0, _playback2.default)()
+    },
+    state: { notes: [].concat(_toConsumableArray(Array(_const.SEQUENCER_LENGTH).keys())).map(function (_) {
+            return [].concat(_toConsumableArray(Array(8).keys())).map(function (_) {
+                return null;
+            });
+        }) },
+    actions: {
+
+        init: function init(_ref) {
+            var onselectvoice = _ref.onselectvoice,
+                onattackvoice = _ref.onattackvoice,
+                onstop = _ref.onstop;
+            return function (state, actions) {
+
+                window.addEventListener('keydown', function (ev) {
+                    if (ev.key !== ' ') return;
+                    actions.setNote(null);
+                });
+
+                actions.selection.init({
+                    onselectcolumn: function onselectcolumn(col) {
+                        return onselectvoice('ABCDEFGH'[col]);
+                    }
+                });
+
+                actions.playback.init({
+                    onplayrow: actions.playRow,
+                    onstop: onstop
+                });
+                return { onattackvoice: onattackvoice };
+            };
+        },
+
+        setNote: function setNote(note) {
+            return function (state, actions) {
+                actions.selection.reset();
+                return { notes: (0, _selection.applySelection)(state.selection, state.notes, note) };
+            };
+        },
+
+        playRow: function playRow(row) {
+            return function (state, actions) {
+                state.notes[row].forEach(function (note, col) {
+                    return state.onattackvoice({ voice: 'ABCDEFGH'[col], note: note });
+                });
+            };
+        }
+    },
+
+    view: function view(state, actions, views) {
+        return {
+            Controls: function Controls(_) {
+                return (0, _hyperapp.h)(
+                    'span',
+                    null,
+                    (0, _hyperapp.h)(views.playback.PlayButton, null),
+                    (0, _hyperapp.h)(views.playback.StopButton, null),
+                    (0, _hyperapp.h)(
+                        _button2.default,
+                        { onclick: function onclick(_) {
+                                return actions.setNote(null);
+                            } },
+                        'X'
+                    )
+                );
+            },
+            Sequencer: function Sequencer(_) {
+                return (0, _hyperapp.h)(
+                    'table',
+                    { 'class': _sequencer2.default.sequencer },
+                    state.notes.map(function (vals, row) {
+                        return (0, _hyperapp.h)(
+                            'tr',
+                            null,
+                            (0, _hyperapp.h)(
+                                'td',
+                                { onclick: function onclick(_) {
+                                        return actions.playback.setRow(row);
+                                    }, 'class': _sequencer2.default.time + (state.playback.row === row ? _sequencer2.default.playing : '') },
+                                row
+                            ),
+                            vals.map(function (note, col) {
+                                return (0, _hyperapp.h)(
+                                    views.selection.Decorator,
+                                    { row: row, col: col },
+                                    (0, _hyperapp.h)(
+                                        'td',
+                                        { 'class': state.playback.row === row ? _sequencer2.default.playing : false },
+                                        noteName(note)
+                                    )
+                                );
+                            })
+                        );
+                    })
+                );
+            }
+        };
+    }
+};
+},{"hyperapp":6,"./const":12,"./selection":13,"./playback":14,"./button":15,"./css/sequencer.css":16}],24:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -548,14 +1162,13 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _const = require('../const');
+var _const = require('./const');
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function noteToHz(note, octave) {
     return Math.exp((octave * 12 + note - _const.TUNING_NOTE) * Math.log(2) / 12) * _const.TUNING_FREQ;
 }
-
 var ctx = new (window.AudioContext || window.webkitAudioContext)();
 
 var Instrument = function () {
@@ -617,40 +1230,53 @@ var Instrument = function () {
     return Instrument;
 }();
 
-exports.default = Instrument;
-},{"../const":7}],8:[function(require,module,exports) {
-
-        var reloadCSS = require('_css_loader');
-        module.hot.dispose(reloadCSS);
-        module.hot.accept(reloadCSS);
-      module.exports = {
-  "synthPanel": "style_synthPanel_11Yt_",
-  "label": "style_label_9desT",
-  "col1": "style_col1_2uvLn",
-  "col2": "style_col2_1wKtu"
+exports.default = {
+    instruments: {
+        'A': new Instrument(),
+        'B': new Instrument(),
+        'C': new Instrument(),
+        'D': new Instrument(),
+        'E': new Instrument(),
+        'F': new Instrument(),
+        'G': new Instrument(),
+        'H': new Instrument()
+    },
+    attack: function attack(i, note) {
+        this.instruments[i].attack(note);
+    },
+    release: function release(i) {
+        this.instruments[i].release();
+    },
+    set: function set(i, props) {
+        this.instruments[i].set(props);
+    }
 };
-},{"_css_loader":11}],17:[function(require,module,exports) {
+},{"./const":12}],19:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _zxdom = require('zxdom');
+var _hyperapp = require('hyperapp');
 
 var _classcat = require('classcat');
 
 var _classcat2 = _interopRequireDefault(_classcat);
 
+var _button = require('./button');
+
+var _button2 = _interopRequireDefault(_button);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (props) {
     return props.options.map(function (opt) {
-        return (0, _zxdom.h)(
-            'button',
+        return (0, _hyperapp.h)(
+            _button2.default,
             {
-                'class': (0, _classcat2.default)({ active: opt.value === props.value }),
-                onclick: function onclick(ev) {
+                active: opt.value === props.value,
+                'do': function _do(ev) {
                     return props.set(opt.value);
                 }
             },
@@ -658,51 +1284,55 @@ exports.default = function (props) {
         );
     });
 };
-},{"zxdom":3,"classcat":10}],16:[function(require,module,exports) {
+},{"hyperapp":6,"classcat":21,"./button":15}],25:[function(require,module,exports) {
 
+        var reloadCSS = require('_css_loader');
+        module.hot.dispose(reloadCSS);
+        module.hot.accept(reloadCSS);
+      module.exports = {
+  "synthPanel": "synth_synthPanel_3QCu4",
+  "label": "synth_label_2Iuli",
+  "col1": "synth_col1_3AQBe",
+  "col2": "synth_col2_15qG3"
+};
+},{"_css_loader":11}],18:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _instrument = require('./instrument');
+var _hyperapp = require('hyperapp');
 
-var _instrument2 = _interopRequireDefault(_instrument);
+var _const = require('./const');
 
-var _zxdom = require('zxdom');
+var _voices = require('./voices');
 
-var _classcat = require('classcat');
+var _voices2 = _interopRequireDefault(_voices);
 
-var _classcat2 = _interopRequireDefault(_classcat);
+var _optionButtonSet = require('./option-button-set');
 
-var _const = require('../const');
+var _optionButtonSet2 = _interopRequireDefault(_optionButtonSet);
 
-var _style = require('./style.css');
+var _synth = require('./css/synth.css');
 
-var _style2 = _interopRequireDefault(_style);
-
-var _optionButtons = require('../option-buttons');
-
-var _optionButtons2 = _interopRequireDefault(_optionButtons);
+var _synth2 = _interopRequireDefault(_synth);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+var ctx = new (window.AudioContext || window.webkitAudioContext)();
+
 var Control = function Control(props, children) {
-    return (0, _zxdom.h)(
+    return (0, _hyperapp.h)(
         'p',
         null,
-        (0, _zxdom.h)(
+        (0, _hyperapp.h)(
             'span',
-            { 'class': _style2.default.label },
+            { 'class': _synth2.default.label },
             props.label,
             ':'
         ),
@@ -711,10 +1341,10 @@ var Control = function Control(props, children) {
 };
 
 var ControlSlider = function ControlSlider(props) {
-    return (0, _zxdom.h)(
+    return (0, _hyperapp.h)(
         Control,
         { label: props.label },
-        (0, _zxdom.h)('input', {
+        (0, _hyperapp.h)('input', {
             type: 'range',
             min: props.min || 0,
             max: props.max,
@@ -728,10 +1358,10 @@ var ControlSlider = function ControlSlider(props) {
 };
 
 var ControlOptions = function ControlOptions(props) {
-    return (0, _zxdom.h)(
+    return (0, _hyperapp.h)(
         Control,
         { label: props.label },
-        (0, _zxdom.h)(_optionButtons2.default, {
+        (0, _hyperapp.h)(_optionButtonSet2.default, {
             options: props.options.map(function (o) {
                 return { name: o, value: o };
             }),
@@ -741,283 +1371,296 @@ var ControlOptions = function ControlOptions(props) {
     );
 };
 
-var ControlPanel = function ControlPanel(_ref) {
-    var settings = _ref.settings,
-        _set = _ref.set;
+exports.default = function (voice) {
+    return {
+        state: _extends({}, _const.SYNTH_DEFAULTS, {
+            current: null
+        }),
 
-    var controlProps = function controlProps(name) {
-        return {
-            value: settings[name],
+        actions: {
             set: function set(x) {
-                return _set(_defineProperty({}, name, x));
+                return function (state) {
+                    _voices2.default.set(voice, x);
+                    return x;
+                };
+            },
+            attack: function attack(note) {
+                return function (state, actions) {
+                    if (state.current === note) return;
+                    if (note === null) {
+                        actions.release();
+                        return;
+                    }
+                    _voices2.default.attack(voice, note);
+                    return { current: note };
+                };
+            },
+            release: function release(_) {
+                return function (state) {
+                    if (state.current === null) return;
+                    _voices2.default.release(voice);
+                    return { current: null };
+                };
             }
-        };
-    };
+        },
 
-    return (0, _zxdom.h)(
-        'div',
-        { 'class': _style2.default.synthPanel },
-        (0, _zxdom.h)(
-            'div',
-            { 'class': _style2.default.col1 },
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Octave' }, controlProps('octave'), { min: 1, max: 6, step: 1 })),
-            (0, _zxdom.h)(ControlOptions, _extends({ label: 'Oscillator' }, controlProps('oscillatorType'), { options: _const.OSCILLATOR_TYPES })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Cutoff' }, controlProps('filterCutoff'), { min: 60, max: 7600 })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Resonance' }, controlProps('filterQ'), { max: 20 }))
-        ),
-        (0, _zxdom.h)(
-            'div',
-            { 'class': _style2.default.col2 },
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Attack time' }, controlProps('attackTime'), { max: 0.2 })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Decay time' }, controlProps('decayTime'), { max: 0.2 })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Sustain level' }, controlProps('sustainLevel'), { max: 1.0 })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Release time' }, controlProps('releaseTime'), { max: 1.0 })),
-            (0, _zxdom.h)(ControlSlider, _extends({ label: 'Gain' }, controlProps('ampLevel'), { max: 1.0 }))
-        )
-    );
-};
-
-var Synth = function () {
-    function Synth() {
-        var _this = this;
-
-        _classCallCheck(this, Synth);
-
-        this.instrument = new _instrument2.default();
-        this.settings = Object.assign({}, _const.SYNTH_DEFAULTS);
-        this.view = (0, _zxdom.define)(function (_) {
-            return ControlPanel({
-                settings: _this.settings,
-                set: function set(x) {
-                    return _this.set(x);
+        view: function view(state, actions, views) {
+            var controlProps = function controlProps(name) {
+                return {
+                    value: state[name],
+                    set: function set(x) {
+                        return actions.set(_defineProperty({}, name, x));
+                    }
+                };
+            };
+            return {
+                ControlPanel: function ControlPanel(_) {
+                    return (0, _hyperapp.h)(
+                        'div',
+                        { 'class': _synth2.default.synthPanel },
+                        (0, _hyperapp.h)(
+                            'div',
+                            { 'class': _synth2.default.col1 },
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Octave' }, controlProps('octave'), { min: 1, max: 6, step: 1 })),
+                            (0, _hyperapp.h)(ControlOptions, _extends({ label: 'Oscillator' }, controlProps('oscillatorType'), { options: _const.OSCILLATOR_TYPES })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Cutoff' }, controlProps('filterCutoff'), { min: 60, max: 7600 })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Resonance' }, controlProps('filterQ'), { max: 20 }))
+                        ),
+                        (0, _hyperapp.h)(
+                            'div',
+                            { 'class': _synth2.default.col2 },
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Attack time' }, controlProps('attackTime'), { max: 0.2 })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Decay time' }, controlProps('decayTime'), { max: 0.2 })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Sustain level' }, controlProps('sustainLevel'), { max: 1.0 })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Release time' }, controlProps('releaseTime'), { max: 1.0 })),
+                            (0, _hyperapp.h)(ControlSlider, _extends({ label: 'Gain' }, controlProps('ampLevel'), { max: 1.0 }))
+                        )
+                    );
                 }
-            });
-        });
-    }
-
-    _createClass(Synth, [{
-        key: 'set',
-        value: function set(props) {
-            this.instrument.set(props);
-            Object.assign(this.settings, props);
-            (0, _zxdom.update)(this.view);
+            };
         }
-    }, {
-        key: 'attack',
-        value: function attack(note) {
-            this.instrument.attack(note);
-        }
-    }, {
-        key: 'release',
-        value: function release(note) {
-            this.instrument.release(note);
-        }
-    }, {
-        key: 'ControlPanel',
-        get: function get() {
-            return this.view;
-        }
-    }]);
-
-    return Synth;
-}();
-
-exports.default = Synth;
-},{"./instrument":9,"zxdom":3,"classcat":10,"../const":7,"./style.css":8,"../option-buttons":17}],5:[function(require,module,exports) {
-
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-exports.default = function (onselect) {
-
-    var bank = {
-        A: new _synth2.default(),
-        B: new _synth2.default(),
-        C: new _synth2.default(),
-        D: new _synth2.default(),
-        E: new _synth2.default(),
-        F: new _synth2.default(),
-        G: new _synth2.default(),
-        H: new _synth2.default()
     };
-
-    var current = 'A';
-
-    function select(synth) {
-        current = synth;
-        (0, _zxdom.update)(Selector);
-        (0, _zxdom.update)(ControlPanel);
-        onselect(synth);
-    }
-
-    var ControlPanel = (0, _zxdom.define)(function (_) {
-        return (0, _zxdom.h)(bank[current].ControlPanel);
-    });
-
-    var Selector = (0, _zxdom.define)(function (_) {
-        return (0, _zxdom.h)(
-            'div',
-            { 'class': 'voice-selector' },
-            (0, _zxdom.h)(_optionButtons2.default, {
-                options: 'ABCDEFGH'.split('').map(function (n) {
-                    return { name: 'Voice ' + n, value: n };
-                }),
-                set: select,
-                value: current
-            })
-        );
-    });
-
-    function attack(note) {
-        bank[current].attack(note);
-    }
-    function release(note) {
-        bank[current].release(note);
-    }
-
-    return { attack: attack, release: release, ControlPanel: ControlPanel, Selector: Selector };
 };
-
-var _synth = require('./synth');
-
-var _synth2 = _interopRequireDefault(_synth);
-
-var _zxdom = require('zxdom');
-
-var _optionButtons = require('../option-buttons');
-
-var _optionButtons2 = _interopRequireDefault(_optionButtons);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./synth":16,"zxdom":3,"../option-buttons":17}],19:[function(require,module,exports) {
+},{"hyperapp":6,"./const":12,"./voices":24,"./option-button-set":19,"./css/synth.css":25}],20:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
       module.exports = {
-  "sequencer": "style_sequencer_3i1KO",
-  "selected": "style_selected_3xfY1",
-  "time": "style_time_oD4Lj",
-  "playing": "style_playing_3JUq9"
+  "voiceSelector": "soundbank_voiceSelector_1bdue"
 };
-},{"_css_loader":11}],18:[function(require,module,exports) {
-
+},{"_css_loader":11}],10:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-exports.default = function () {
-    var notes = [].concat(_toConsumableArray(Array(_const.SEQUENCER_LENGTH).keys())).map(function (_) {
-        return [].concat(_toConsumableArray(Array(8).keys())).map(function (_) {
-            return null;
-        });
-    });
-
-    var Sequencer = (0, _zxdom.define)(function (_) {
-        return (0, _zxdom.h)(
-            'table',
-            { 'class': _style2.default.sequencer },
-            notes.map(function (vals, row) {
-                return (0, _zxdom.h)(
-                    'tr',
-                    null,
-                    (0, _zxdom.h)(
-                        'td',
-                        { 'class': _style2.default.time },
-                        row
-                    ),
-                    vals.map(function (note, col) {
-                        return (0, _zxdom.h)(
-                            'td',
-                            null,
-                            note === null ? '' : _const.NOTE_NAMES[note]
-                        );
-                    })
-                );
-            })
-        );
-    });
-
-    return { Sequencer: Sequencer };
-};
-
-var _zxdom = require('zxdom');
-
-var _style = require('./style.css');
-
-var _style2 = _interopRequireDefault(_style);
-
-var _const = require('../const');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-},{"zxdom":3,"./style.css":19,"../const":7}],2:[function(require,module,exports) {
-'use strict';
-
-var _zxdom = require('zxdom');
-
-var _style = require('./style.css');
-
-var _style2 = _interopRequireDefault(_style);
-
-var _keyboard = require('./keyboard');
-
-var _keyboard2 = _interopRequireDefault(_keyboard);
+var _hyperapp = require('hyperapp');
 
 var _synth = require('./synth');
 
 var _synth2 = _interopRequireDefault(_synth);
 
+var _optionButtonSet = require('./option-button-set');
+
+var _optionButtonSet2 = _interopRequireDefault(_optionButtonSet);
+
+var _soundbank = require('./css/soundbank.css');
+
+var _soundbank2 = _interopRequireDefault(_soundbank);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = {
+    modules: {
+        A: (0, _synth2.default)('A'),
+        B: (0, _synth2.default)('B'),
+        C: (0, _synth2.default)('C'),
+        D: (0, _synth2.default)('D'),
+        E: (0, _synth2.default)('E'),
+        F: (0, _synth2.default)('F'),
+        G: (0, _synth2.default)('G'),
+        H: (0, _synth2.default)('H')
+    },
+    state: { selected: 'A' },
+    actions: {
+        init: function init(_ref) {
+            var onselect = _ref.onselect;
+            return { onselect: onselect };
+        },
+        select: function select(x) {
+            return { selected: x };
+        },
+        attack: function attack(_ref2) {
+            var voice = _ref2.voice,
+                note = _ref2.note;
+            return function (_, actions) {
+                return actions[voice].attack(note);
+            };
+        },
+        attackCurrent: function attackCurrent(note) {
+            return function (state, actions) {
+                return actions[state.selected].attack(note);
+            };
+        },
+        releaseCurrent: function releaseCurrent(note) {
+            return function (state, actions) {
+                return actions[state.selected].release();
+            };
+        },
+        stopAll: function stopAll(_) {
+            return function (_, actions) {
+                'ABCDEFGH'.split('').forEach(function (v) {
+                    return actions[v].release();
+                });
+            };
+        }
+    },
+    view: function view(state, actions, views) {
+        return {
+            ControlPanel: views[state.selected].ControlPanel,
+            Selector: function Selector(_) {
+                return (0, _hyperapp.h)(
+                    'div',
+                    { 'class': _soundbank2.default.voiceSelector },
+                    (0, _hyperapp.h)(_optionButtonSet2.default, {
+                        options: 'ABCDEFGH'.split('').map(function (n) {
+                            return { name: 'Voice ' + n, value: n };
+                        }),
+                        set: function set(x) {
+                            actions.select(x);
+                            state.onselect(x);
+                        },
+                        value: state.selected
+                    })
+                );
+            }
+        };
+    }
+};
+},{"hyperapp":6,"./synth":18,"./option-button-set":19,"./css/soundbank.css":20}],4:[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _hyperapp = require('hyperapp');
+
+var _main = require('./css/main.css');
+
+var _main2 = _interopRequireDefault(_main);
+
+var _keyboard = require('./keyboard');
+
+var _keyboard2 = _interopRequireDefault(_keyboard);
+
 var _sequencer = require('./sequencer');
 
 var _sequencer2 = _interopRequireDefault(_sequencer);
 
+var _soundbank = require('./soundbank');
+
+var _soundbank2 = _interopRequireDefault(_soundbank);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var sequencer = (0, _sequencer2.default)();
-
-var soundbank = (0, _synth2.default)({
-    onselect: function onselect(x) {
-        return console.log('SELECTED', x);
-    }
-});
-
-var keyboard = (0, _keyboard2.default)({
-    onattack: function onattack(note) {
-        return soundbank.attack(note);
+exports.default = {
+    modules: {
+        sequencer: _sequencer2.default,
+        keyboard: _keyboard2.default,
+        soundbank: _soundbank2.default
     },
-    onrelease: function onrelease(note) {
-        return soundbank.release(note);
-    }
-});
 
-(0, _zxdom.mount)((0, _zxdom.h)(
-    'div',
-    { 'class': _style2.default.appLayout },
-    (0, _zxdom.h)(
-        'div',
-        { 'class': _style2.default.appLayoutLeft },
-        (0, _zxdom.h)(
+    actions: {
+        init: function init(_) {
+            return function (_, actions) {
+                actions.keyboard.init({
+                    onattack: function onattack(note) {
+                        actions.soundbank.attackCurrent(note);
+                        actions.sequencer.setNote(note);
+                    },
+                    onrelease: function onrelease(_) {
+                        actions.soundbank.releaseCurrent();
+                        actions.sequencer.setNote(null);
+                    }
+                });
+
+                actions.sequencer.init({
+                    onselectvoice: actions.soundbank.select,
+                    onattackvoice: actions.sequencerAttackVoice,
+                    onstop: actions.soundbank.stopAll
+                });
+
+                actions.soundbank.init({
+                    onselect: actions.sequencer.selection.reset
+                });
+            };
+        },
+
+        sequencerAttackVoice: function sequencerAttackVoice(_ref) {
+            var note = _ref.note,
+                voice = _ref.voice;
+            return function (state, actions) {
+                //let keyboard override what the sequencer plays:
+                if (voice === state.soundbank.selected && state.keyboard.pressed) return;
+                actions.soundbank.attack({ voice: voice, note: note });
+            };
+        }
+    },
+
+    view: function view(state, actions, views) {
+        return (0, _hyperapp.h)(
             'div',
-            { 'class': _style2.default.mainPanel },
-            (0, _zxdom.h)(soundbank.Selector, null),
-            (0, _zxdom.h)(soundbank.ControlPanel, null)
-        ),
-        (0, _zxdom.h)(keyboard.Keyboard, null)
-    ),
-    (0, _zxdom.h)(
-        'div',
-        { 'class': _style2.default.appLayoutRight },
-        (0, _zxdom.h)(sequencer.Sequencer, null)
-    )
-), document.body);
-},{"zxdom":3,"./style.css":20,"./keyboard":4,"./synth":5,"./sequencer":18}],13:[function(require,module,exports) {
+            { 'class': _main2.default.container },
+            (0, _hyperapp.h)(
+                'div',
+                { 'class': _main2.default.left },
+                (0, _hyperapp.h)(
+                    'div',
+                    { 'class': _main2.default.mainPanel },
+                    (0, _hyperapp.h)(views.sequencer.Controls, null),
+                    (0, _hyperapp.h)(views.soundbank.Selector, null),
+                    (0, _hyperapp.h)(views.soundbank.ControlPanel, null)
+                ),
+                (0, _hyperapp.h)(views.keyboard.Keyboard, null)
+            ),
+            (0, _hyperapp.h)(
+                'div',
+                { 'class': 'app-layout-right' },
+                (0, _hyperapp.h)(views.sequencer.Sequencer, null)
+            )
+        );
+    }
+};
+},{"hyperapp":6,"./css/main.css":7,"./keyboard":8,"./sequencer":9,"./soundbank":10}],2:[function(require,module,exports) {
+'use strict';
+
+require('./css/base.css');
+
+var _hyperapp = require('hyperapp');
+
+var _combineModules2 = require('./lib/combine-modules');
+
+var _combineModules3 = _interopRequireDefault(_combineModules2);
+
+var _main = require('./main');
+
+var _main2 = _interopRequireDefault(_main);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _combineModules = (0, _combineModules3.default)(_main2.default),
+    state = _combineModules.state,
+    actions = _combineModules.actions,
+    view = _combineModules.view;
+
+var _app = (0, _hyperapp.app)(state, actions, view, document.body),
+    init = _app.init;
+
+init();
+},{"./css/base.css":3,"hyperapp":6,"./lib/combine-modules":5,"./main":4}],27:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -1046,7 +1689,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '51238' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62945' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -1187,5 +1830,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[13,2], null)
+},{}]},{},[27,2], null)
 //# sourceMappingURL=/src.7deb02e7.map

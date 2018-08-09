@@ -1,0 +1,15 @@
+button {
+    font-weight: bold;
+    background-color: #444;
+    color: #fff;
+    border: 2px black solid;
+    height: 25px; 
+    line-height: 15px;
+}
+
+button.active, button:active {
+    background-color: #e9931d;
+    color: #000;
+}
+
+

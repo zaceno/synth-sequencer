@@ -1,5 +1,6 @@
 import {h} from 'hyperapp'
 import {SEQUENCER_INTERVAL, SEQUENCER_LENGTH} from './const'
+import Button from './button'
 
 export default _ => ({
     state: {
@@ -30,21 +31,13 @@ export default _ => ({
 
     view: (state, actions) => ({
         PlayButton: _ => (
-            <button
-                onclick={actions.play}
-                class={state.interval && 'active'}
+            <Button
+                do={actions.play}
+                active={state.interval}
             >
                 Play
-            </button>
+            </Button>
         ),
-        StopButton: _ => (
-            <button
-                onclick={actions.stop}
-                onmousedown={ev => ev.currentTarget.classList.add('active')}
-                onmouseup={ev => ev.currentTarget.classList.remove('active')}
-            >
-                Stop
-            </button>
-        ),
+        StopButton: _ => (<Button do={actions.stop}>Stop</Button>),
     })
 })

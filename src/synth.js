@@ -2,12 +2,13 @@ import {h} from 'hyperapp'
 import {SYNTH_DEFAULTS, OSCILLATOR_TYPES} from './const'
 import voices from './voices'
 import OptionButtonSet from './option-button-set'
+import css from './css/synth.css'
 
 const ctx = new (window.AudioContext || window.webkitAudioContext)()
 
 const Control = (props, children) => (
     <p>
-        <span class="label">{props.label}:</span>
+        <span class={css.label}>{props.label}:</span>
         {children}
     </p>
 )
@@ -69,14 +70,14 @@ export default voice => ({
         })
         return {
             ControlPanel: _ => (
-                <div class="synth-panel">
-                    <div class="col-1">
+                <div class={css.synthPanel}>
+                    <div class={css.col1}>
                         <ControlSlider  label="Octave"     {...controlProps('octave')}         min={1} max={6} step={1} />
                         <ControlOptions label="Oscillator" {...controlProps('oscillatorType')} options={OSCILLATOR_TYPES} />
                         <ControlSlider  label="Cutoff"     {...controlProps('filterCutoff')}   min={60} max={7600} />
                         <ControlSlider  label="Resonance"  {...controlProps('filterQ')}        max={20} />
                     </div>
-                    <div class="col-2">
+                    <div class={css.col2}>
                         <ControlSlider label="Attack time"   {...controlProps('attackTime')}   max={0.2} />
                         <ControlSlider label="Decay time"    {...controlProps('decayTime')}    max={0.2} />
                         <ControlSlider label="Sustain level" {...controlProps('sustainLevel')} max={1.0} />

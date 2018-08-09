@@ -1,5 +1,5 @@
 import decorator from './lib/decorator'
-
+import css from './css/sequencer.css'
 const isSelected = (state, row, col) => {
     if (state.start === null) return false
     var r = (col === state.column && row >= state.start && row <= state.end)
@@ -68,7 +68,7 @@ export const module = _ => ({
                 ev.preventDefault(true)
                 actions.select({row, col})
             },
-            class: isSelected(state, row, col) ? 'selected' : ''
+            class: isSelected(state, row, col) ? css.selected : ''
         }))
     })
 })

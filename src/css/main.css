@@ -1,0 +1,13 @@
+.container {
+    display: flex;
+}
+.left {
+    flex: 0 0 800px;
+}
+.right {
+    flex: 1 0 1px;
+}
+.mainPanel {
+    background: #ddd;
+}
+

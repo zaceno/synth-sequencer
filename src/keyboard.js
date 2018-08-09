@@ -1,26 +1,22 @@
 import {h} from 'hyperapp'
 import cc from 'classcat'
+import css from './css/keyboard.css'
+
 import {KEYBOARD_KEYS, KEYBOARD_BLACK_KEYS} from './const'
 const isBlack  = char =>  KEYBOARD_BLACK_KEYS.indexOf(char) > -1
 
-const noteForChar = function (char) {
-    const n = KEYBOARD_KEYS.indexOf(char)
-    return n > -1 ? n : null
-}
-
 const Keyboard = ({pressed, attack, release}) => (
-    <div class="keyboard" key="keyboard">
+    <div class={css.keyboard} key="keyboard">
         {KEYBOARD_KEYS.map(char => (
         <div
-            class={cc(['clav', {
-                white: !isBlack(char),
-                black: isBlack(char),
-                pressed: char === pressed,
+            class={cc([css.clav, {
+                [css.black]: isBlack(char),
+                [css.pressed]: char === pressed,
             }])}
             onmousedown={ ev => attack(char) }
             onmouseup={ ev => release(char) }
         >
-            <span class="char">{char.toUpperCase()}</span>
+            <span class={css.char}>{char.toUpperCase()}</span>
         </div>
         ))}
     </div>
