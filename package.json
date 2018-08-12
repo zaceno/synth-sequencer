@@ -6,7 +6,7 @@
   "main": "dist/index.html",
   "scripts": {
     "build": "parcel build src/index.html",
-    "dev": "parcel --open src/index.html"
+    "dev": "parcel src/index.html --open "
   },
   "author": "Zacharias Enochsson",
   "license": "MIT",
@@ -20,8 +20,5 @@
     "hyperapp": "^1.2.8",
     "less": "^3.6.0",
     "postcss-modules": "^1.1.0"
-  },
-  "dependencies": {
-    "base.css": "^1.0.0"
   }
 }

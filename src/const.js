@@ -1,5 +1,5 @@
 
-export const SEQUENCER_LENGTH = 32
+export const SEQUENCER_LENGTH = 256
 export const SEQUENCER_INTERVAL = 100
 export const NOTE_NAMES = [
     'C', 'C#', 'D', 'Eb',

@@ -1,5 +1,6 @@
 import decorator from './lib/decorator'
 import css from './css/sequencer.css'
+
 const isSelected = (state, row, col) => {
     if (state.start === null) return false
     var r = (col === state.column && row >= state.start && row <= state.end)
@@ -21,41 +22,52 @@ export const module = _ => ({
         anchor: null,
         column: null,
         start: null,
-        end: null
+        end: null,
+        selecting: false,
+        haveSelection: false,
     },
 
     actions: {
         _set: x => x,
+
         init: ({onselectcolumn}) => (state, actions) => {
             actions._set({onselectcolumn})
             actions.reset()
         },
+
         start: ({row, col}) => state => {
             state.onselectcolumn(col)
             return {
+                selecting: true,
+                haveSelection: true,
                 anchor: row,
                 column: col,
                 start: row,
                 end: row,
             }
         },
+
         select: ({row}) => state => {
             if (state.anchor === null) return
             return (row < state.anchor )
             ? {start: row, end:state.anchor}
             : {start: state.anchor, end: row}
         },
-        end: ({row}) => ({anchor: null}),
+
+        end: ({row}) => ({anchor: null, selecting: false}),
+
         reset: _ => ({
             anchor: null,
             column: null,
             start: null,
-            end: null
+            end: null,
+            selecting: false,
+            haveSelection: false
         })
     },
 
     view: (state, actions) => ({
-        Decorator: decorator(({row, col}) => ({
+        Decorator: decorator(({row, col, disabled}) => (!disabled ?  {
             onmousedown: ev => {
                 ev.preventDefault(true)
                 actions.start({row, col})
@@ -69,6 +81,6 @@ export const module = _ => ({
                 actions.select({row, col})
             },
             class: isSelected(state, row, col) ? css.selected : ''
-        }))
+        } : {}))
     })
 })

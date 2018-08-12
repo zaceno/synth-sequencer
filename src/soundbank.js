@@ -18,10 +18,10 @@ export default {
     actions: {
         init: ({onselect}) => ({onselect}),
         select: x => ({selected: x}),
-        attack: ({voice, note}) => (_, actions) => actions[voice].attack(note),
-        attackCurrent: note => (state, actions) => actions[state.selected].attack(note),
-        releaseCurrent: note => (state, actions) => actions[state.selected].release(),
-        stopAll: _ => (_, actions) => { 'ABCDEFGH'.split('').forEach(v => actions[v].release() ) }
+        play: ({voice, note}) => (_, actions) => {
+            actions[voice].play(note)
+        },
+        stopAll: _ => (_, actions) => 'ABCDEFGH'.split('').forEach(v => actions[v].play(null) ) 
     },
     view: (state, actions, views) => ({
         ControlPanel: views[state.selected].ControlPanel,

@@ -98,7 +98,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({22:[function(require,module,exports) {
+})({9:[function(require,module,exports) {
 var bundleURL = null;
 function getBundleURLCached() {
   if (!bundleURL) {
@@ -128,7 +128,7 @@ function getBaseURL(url) {
 
 exports.getBundleURL = getBundleURLCached;
 exports.getBaseURL = getBaseURL;
-},{}],11:[function(require,module,exports) {
+},{}],8:[function(require,module,exports) {
 var bundle = require('./bundle-url');
 
 function updateLink(link) {
@@ -159,13 +159,13 @@ function reloadCSS() {
 }
 
 module.exports = reloadCSS;
-},{"./bundle-url":22}],3:[function(require,module,exports) {
+},{"./bundle-url":9}],3:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
       module.exports = {};
-},{"_css_loader":11}],6:[function(require,module,exports) {
+},{"_css_loader":8}],7:[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -534,7 +534,7 @@ function combineModules(tree) {
 
     return { state: state, actions: actions, view: view };
 }
-},{}],7:[function(require,module,exports) {
+},{}],10:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
@@ -545,7 +545,7 @@ function combineModules(tree) {
   "right ": "main_right _2uDWc",
   "mainPanel": "main_mainPanel_3gYtz"
 };
-},{"_css_loader":11}],21:[function(require,module,exports) {
+},{"_css_loader":8}],23:[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -579,7 +579,7 @@ function cc(classes, prefix) {
 
   return className;
 }
-},{}],17:[function(require,module,exports) {
+},{}],25:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
@@ -591,13 +591,13 @@ function cc(classes, prefix) {
   "pressed": "keyboard_pressed_1cGZj",
   "char": "keyboard_char_3m2iF"
 };
-},{"_css_loader":11}],12:[function(require,module,exports) {
+},{"_css_loader":8}],19:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-var SEQUENCER_LENGTH = exports.SEQUENCER_LENGTH = 32;
+var SEQUENCER_LENGTH = exports.SEQUENCER_LENGTH = 256;
 var SEQUENCER_INTERVAL = exports.SEQUENCER_INTERVAL = 100;
 var NOTE_NAMES = exports.NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B', 'C'];
 var KEYBOARD_KEYS = exports.KEYBOARD_KEYS = ['z', 's', 'x', 'd', 'c', 'v', 'g', 'b', 'h', 'n', 'j', 'm', 'q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i'];
@@ -620,7 +620,7 @@ var OSCILLATOR_TYPES = exports.OSCILLATOR_TYPES = ['sawtooth', 'square', 'triang
 
 var TUNING_FREQ = exports.TUNING_FREQ = 440;
 var TUNING_NOTE = exports.TUNING_NOTE = 69;
-},{}],8:[function(require,module,exports) {
+},{}],11:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -686,8 +686,7 @@ exports.default = {
     actions: {
 
         init: function init(_ref3) {
-            var onattack = _ref3.onattack,
-                onrelease = _ref3.onrelease;
+            var onpress = _ref3.onpress;
             return function (state, actions) {
                 addEventListener('keydown', function (ev) {
                     return actions.attack(ev.key) && ev.preventDefault(true);
@@ -695,10 +694,7 @@ exports.default = {
                 addEventListener('keyup', function (ev) {
                     return actions.release(ev.key) && ev.preventDefault(true);
                 });
-                return {
-                    onattack: onattack || function (_) {},
-                    onrelease: onrelease || function (_) {}
-                };
+                return { onpress: onpress };
             };
         },
 
@@ -707,7 +703,7 @@ exports.default = {
                 var note = _const.KEYBOARD_KEYS.indexOf(char);
                 if (note === -1) return;
                 if (char === state.pressed) return;
-                if (char !== state.pressed) state.onattack(note);
+                state.onpress(note);
                 return { pressed: char };
             };
         },
@@ -717,7 +713,7 @@ exports.default = {
                 var note = _const.KEYBOARD_KEYS.indexOf(char);
                 if (note === -1) return;
                 if (char !== state.pressed) return;
-                if (char === state.pressed) state.onrelease(note);
+                state.onpress(null);
                 return { pressed: null };
             };
         }
@@ -735,7 +731,7 @@ exports.default = {
         };
     }
 };
-},{"hyperapp":6,"classcat":21,"./css/keyboard.css":17,"./const":12}],26:[function(require,module,exports) {
+},{"hyperapp":7,"classcat":23,"./css/keyboard.css":25,"./const":19}],29:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -767,18 +763,19 @@ exports.default = function (getDeco) {
         });
     };
 };
-},{}],16:[function(require,module,exports) {
+},{}],28:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
         module.hot.accept(reloadCSS);
       module.exports = {
+  "scrollContainer": "sequencer_scrollContainer_3ci3u",
   "sequencer": "sequencer_sequencer_EqxkS",
   "selected": "sequencer_selected_18jv1",
   "time": "sequencer_time_hwPCS",
   "playing": "sequencer_playing_19tq6"
 };
-},{"_css_loader":11}],13:[function(require,module,exports) {
+},{"_css_loader":8}],26:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -818,13 +815,16 @@ var _module = function _module(_) {
             anchor: null,
             column: null,
             start: null,
-            end: null
+            end: null,
+            selecting: false,
+            haveSelection: false
         },
 
         actions: {
             _set: function _set(x) {
                 return x;
             },
+
             init: function init(_ref) {
                 var onselectcolumn = _ref.onselectcolumn;
                 return function (state, actions) {
@@ -832,12 +832,15 @@ var _module = function _module(_) {
                     actions.reset();
                 };
             },
+
             start: function start(_ref2) {
                 var row = _ref2.row,
                     col = _ref2.col;
                 return function (state) {
                     state.onselectcolumn(col);
                     return {
+                        selecting: true,
+                        haveSelection: true,
                         anchor: row,
                         column: col,
                         start: row,
@@ -845,6 +848,7 @@ var _module = function _module(_) {
                     };
                 };
             },
+
             select: function select(_ref3) {
                 var row = _ref3.row;
                 return function (state) {
@@ -852,16 +856,20 @@ var _module = function _module(_) {
                     return row < state.anchor ? { start: row, end: state.anchor } : { start: state.anchor, end: row };
                 };
             },
+
             end: function end(_ref4) {
                 var row = _ref4.row;
-                return { anchor: null };
+                return { anchor: null, selecting: false };
             },
+
             reset: function reset(_) {
                 return {
                     anchor: null,
                     column: null,
                     start: null,
-                    end: null
+                    end: null,
+                    selecting: false,
+                    haveSelection: false
                 };
             }
         },
@@ -870,8 +878,9 @@ var _module = function _module(_) {
             return {
                 Decorator: (0, _decorator2.default)(function (_ref5) {
                     var row = _ref5.row,
-                        col = _ref5.col;
-                    return {
+                        col = _ref5.col,
+                        disabled = _ref5.disabled;
+                    return !disabled ? {
                         onmousedown: function onmousedown(ev) {
                             ev.preventDefault(true);
                             actions.start({ row: row, col: col });
@@ -885,14 +894,14 @@ var _module = function _module(_) {
                             actions.select({ row: row, col: col });
                         },
                         class: isSelected(state, row, col) ? _sequencer2.default.selected : ''
-                    };
+                    } : {};
                 })
             };
         }
     };
 };
 exports.module = _module;
-},{"./lib/decorator":26,"./css/sequencer.css":16}],23:[function(require,module,exports) {
+},{"./lib/decorator":29,"./css/sequencer.css":28}],24:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
@@ -900,7 +909,7 @@ exports.module = _module;
       module.exports = {
   "active": "button_active_75kSy"
 };
-},{"_css_loader":11}],15:[function(require,module,exports) {
+},{"_css_loader":8}],22:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -937,7 +946,7 @@ exports.default = function (props, children) {
         children
     );
 };
-},{"hyperapp":6,"./css/button.css":23,"classcat":21}],14:[function(require,module,exports) {
+},{"hyperapp":7,"./css/button.css":24,"classcat":23}],27:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -965,8 +974,9 @@ exports.default = function (_) {
         actions: {
             init: function init(_ref) {
                 var onplayrow = _ref.onplayrow,
-                    onstop = _ref.onstop;
-                return { onplayrow: onplayrow, onstop: onstop };
+                    onstop = _ref.onstop,
+                    onstart = _ref.onstart;
+                return { onplayrow: onplayrow, onstop: onstop, onstart: onstart };
             },
             setRow: function setRow(row) {
                 return { row: row };
@@ -981,6 +991,7 @@ exports.default = function (_) {
             play: function play(_) {
                 return function (state, actions) {
                     if (state.interval) return;
+                    state.onstart();
                     actions.setRow((state.row || 0) - 1);
                     return { playing: true, interval: setInterval(actions.next, _const.SEQUENCER_INTERVAL) };
                 };
@@ -1017,7 +1028,7 @@ exports.default = function (_) {
         }
     };
 };
-},{"hyperapp":6,"./const":12,"./button":15}],9:[function(require,module,exports) {
+},{"hyperapp":7,"./const":19,"./button":22}],12:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1055,22 +1066,25 @@ exports.default = {
         selection: (0, _selection.module)(),
         playback: (0, _playback2.default)()
     },
+
     state: { notes: [].concat(_toConsumableArray(Array(_const.SEQUENCER_LENGTH).keys())).map(function (_) {
             return [].concat(_toConsumableArray(Array(8).keys())).map(function (_) {
                 return null;
             });
         }) },
+
     actions: {
 
         init: function init(_ref) {
             var onselectvoice = _ref.onselectvoice,
-                onattackvoice = _ref.onattackvoice,
-                onstop = _ref.onstop;
+                onplay = _ref.onplay,
+                _onstop = _ref.onstop;
             return function (state, actions) {
 
                 window.addEventListener('keydown', function (ev) {
                     if (ev.key !== ' ') return;
-                    actions.setNote(null);
+                    ev.preventDefault(true);
+                    actions.controlPress();
                 });
 
                 actions.selection.init({
@@ -1080,27 +1094,98 @@ exports.default = {
                 });
 
                 actions.playback.init({
+                    onstart: actions.selection.reset,
                     onplayrow: actions.playRow,
-                    onstop: onstop
+                    onstop: function onstop(_) {
+                        actions.stopRecording();
+                        _onstop();
+                    }
                 });
-                return { onattackvoice: onattackvoice };
+                return { onplay: onplay };
             };
         },
 
-        setNote: function setNote(note) {
+        controlPress: function controlPress(_) {
             return function (state, actions) {
+                if (state.playback.playing) {
+                    actions.playback.stop();
+                } else if (state.selection.haveSelection) {
+                    actions.setNoteOnSelection(null);
+                } else {
+                    actions.playback.play();
+                }
+            };
+        },
+
+        attack: function attack(_ref2) {
+            var note = _ref2.note,
+                voice = _ref2.voice;
+            return function (state, actions) {
+                if (state.selection.haveSelection) actions.setNoteOnSelection(note);
+                if (state.recording) actions.recordNote({ note: note, voice: voice });
+            };
+        },
+
+        release: function release(_) {
+            return function (state, actions) {
+                if (state.recording) {
+                    return { recordingNote: null };
+                }
+            };
+        },
+
+        setNoteOnSelection: function setNoteOnSelection(note) {
+            return function (state, actions) {
+                var notes = (0, _selection.applySelection)(state.selection, state.notes, note);
                 actions.selection.reset();
-                return { notes: (0, _selection.applySelection)(state.selection, state.notes, note) };
+                return { notes: notes };
             };
         },
 
         playRow: function playRow(row) {
             return function (state, actions) {
+                if (state.recordingNote) actions.setRecordedNote(state.recordingNote);
                 state.notes[row].forEach(function (note, col) {
-                    return state.onattackvoice({ voice: 'ABCDEFGH'[col], note: note });
+                    var voice = 'ABCDEFGH'[col];
+                    if (state.recordingNote && state.recordingNote.voice === voice) return;
+                    state.onplay({ voice: 'ABCDEFGH'[col], note: note });
                 });
             };
+        },
+        startRecording: function startRecording(_) {
+            return function (state, actions) {
+                actions.playback.play();
+                return { recording: true };
+            };
+        },
+
+        stopRecording: function stopRecording(_) {
+            return { recording: false, recordingNote: null };
+        },
+
+        recordNote: function recordNote(_ref3) {
+            var note = _ref3.note,
+                voice = _ref3.voice;
+            return function (state, actions) {
+                actions.setRecordedNote({ note: note, voice: voice });
+                return { recordingNote: { note: note, voice: voice } };
+            };
+        },
+
+        setRecordedNote: function setRecordedNote(_ref4) {
+            var note = _ref4.note,
+                voice = _ref4.voice;
+            return function (state) {
+                var notes = state.notes.map(function (arr, row) {
+                    return arr.map(function (oldNote, col) {
+                        if (row === state.playback.row && 'ABCDEFGH'[col] === voice) return note;
+                        return oldNote;
+                    });
+                });
+                return { notes: notes };
+            };
         }
+
     },
 
     view: function view(state, actions, views) {
@@ -1109,11 +1194,16 @@ exports.default = {
                 return (0, _hyperapp.h)(
                     'span',
                     null,
+                    (0, _hyperapp.h)(
+                        _button2.default,
+                        { 'do': actions.startRecording, active: state.recording },
+                        'Rec'
+                    ),
                     (0, _hyperapp.h)(views.playback.PlayButton, null),
                     (0, _hyperapp.h)(views.playback.StopButton, null),
                     (0, _hyperapp.h)(
                         _button2.default,
-                        { onclick: function onclick(_) {
+                        { 'do': function _do(_) {
                                 return actions.setNote(null);
                             } },
                         'X'
@@ -1122,38 +1212,44 @@ exports.default = {
             },
             Sequencer: function Sequencer(_) {
                 return (0, _hyperapp.h)(
-                    'table',
-                    { 'class': _sequencer2.default.sequencer },
-                    state.notes.map(function (vals, row) {
-                        return (0, _hyperapp.h)(
-                            'tr',
-                            null,
-                            (0, _hyperapp.h)(
-                                'td',
-                                { onclick: function onclick(_) {
-                                        return actions.playback.setRow(row);
-                                    }, 'class': _sequencer2.default.time + (state.playback.row === row ? _sequencer2.default.playing : '') },
-                                row
-                            ),
-                            vals.map(function (note, col) {
-                                return (0, _hyperapp.h)(
-                                    views.selection.Decorator,
-                                    { row: row, col: col },
-                                    (0, _hyperapp.h)(
-                                        'td',
-                                        { 'class': state.playback.row === row ? _sequencer2.default.playing : false },
-                                        noteName(note)
-                                    )
-                                );
-                            })
-                        );
-                    })
+                    'div',
+                    { 'class': _sequencer2.default.scrollContainer },
+                    (0, _hyperapp.h)(
+                        'table',
+                        { 'class': _sequencer2.default.sequencer },
+                        state.notes.map(function (vals, row) {
+                            return (0, _hyperapp.h)(
+                                'tr',
+                                { onupdate: function onupdate(el) {
+                                        if (state.playback.playing && state.playback.row === row - 5) el.scrollIntoView(false);
+                                    } },
+                                (0, _hyperapp.h)(
+                                    'td',
+                                    { onclick: function onclick(_) {
+                                            return actions.playback.setRow(row);
+                                        }, 'class': _sequencer2.default.time + (state.playback.row === row ? _sequencer2.default.playing : '') },
+                                    row
+                                ),
+                                vals.map(function (note, col) {
+                                    return (0, _hyperapp.h)(
+                                        views.selection.Decorator,
+                                        { row: row, col: col, disabled: state.playback.playing },
+                                        (0, _hyperapp.h)(
+                                            'td',
+                                            { 'class': state.playback.row === row ? _sequencer2.default.playing : false },
+                                            noteName(note)
+                                        )
+                                    );
+                                })
+                            );
+                        })
+                    )
                 );
             }
         };
     }
 };
-},{"hyperapp":6,"./const":12,"./selection":13,"./playback":14,"./button":15,"./css/sequencer.css":16}],24:[function(require,module,exports) {
+},{"hyperapp":7,"./const":19,"./selection":26,"./playback":27,"./button":22,"./css/sequencer.css":28}],20:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1251,7 +1347,7 @@ exports.default = {
         this.instruments[i].set(props);
     }
 };
-},{"./const":12}],19:[function(require,module,exports) {
+},{"./const":19}],18:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1284,7 +1380,7 @@ exports.default = function (props) {
         );
     });
 };
-},{"hyperapp":6,"classcat":21,"./button":15}],25:[function(require,module,exports) {
+},{"hyperapp":7,"classcat":23,"./button":22}],21:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
@@ -1295,7 +1391,7 @@ exports.default = function (props) {
   "col1": "synth_col1_3AQBe",
   "col2": "synth_col2_15qG3"
 };
-},{"_css_loader":11}],18:[function(require,module,exports) {
+},{"_css_loader":8}],16:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1384,24 +1480,22 @@ exports.default = function (voice) {
                     return x;
                 };
             },
-            attack: function attack(note) {
+            play: function play(note) {
                 return function (state, actions) {
                     if (state.current === note) return;
                     if (note === null) {
-                        actions.release();
-                        return;
+                        _voices2.default.release(voice);
+                    } else {
+                        _voices2.default.attack(voice, note);
                     }
-                    _voices2.default.attack(voice, note);
                     return { current: note };
                 };
-            },
-            release: function release(_) {
-                return function (state) {
-                    if (state.current === null) return;
-                    _voices2.default.release(voice);
-                    return { current: null };
-                };
             }
+            // release: _ => state => {
+            //     if (state.current === null) return 
+            //     voices.release(voice)
+            //     return {current: null}
+            // },
         },
 
         view: function view(state, actions, views) {
@@ -1441,7 +1535,7 @@ exports.default = function (voice) {
         }
     };
 };
-},{"hyperapp":6,"./const":12,"./voices":24,"./option-button-set":19,"./css/synth.css":25}],20:[function(require,module,exports) {
+},{"hyperapp":7,"./const":19,"./voices":20,"./option-button-set":18,"./css/synth.css":21}],17:[function(require,module,exports) {
 
         var reloadCSS = require('_css_loader');
         module.hot.dispose(reloadCSS);
@@ -1449,7 +1543,7 @@ exports.default = function (voice) {
       module.exports = {
   "voiceSelector": "soundbank_voiceSelector_1bdue"
 };
-},{"_css_loader":11}],10:[function(require,module,exports) {
+},{"_css_loader":8}],13:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1492,27 +1586,17 @@ exports.default = {
         select: function select(x) {
             return { selected: x };
         },
-        attack: function attack(_ref2) {
+        play: function play(_ref2) {
             var voice = _ref2.voice,
                 note = _ref2.note;
             return function (_, actions) {
-                return actions[voice].attack(note);
-            };
-        },
-        attackCurrent: function attackCurrent(note) {
-            return function (state, actions) {
-                return actions[state.selected].attack(note);
-            };
-        },
-        releaseCurrent: function releaseCurrent(note) {
-            return function (state, actions) {
-                return actions[state.selected].release();
+                actions[voice].play(note);
             };
         },
         stopAll: function stopAll(_) {
             return function (_, actions) {
-                'ABCDEFGH'.split('').forEach(function (v) {
-                    return actions[v].release();
+                return 'ABCDEFGH'.split('').forEach(function (v) {
+                    return actions[v].play(null);
                 });
             };
         }
@@ -1539,7 +1623,7 @@ exports.default = {
         };
     }
 };
-},{"hyperapp":6,"./synth":18,"./option-button-set":19,"./css/soundbank.css":20}],4:[function(require,module,exports) {
+},{"hyperapp":7,"./synth":16,"./option-button-set":18,"./css/soundbank.css":17}],4:[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1576,36 +1660,32 @@ exports.default = {
     actions: {
         init: function init(_) {
             return function (_, actions) {
-                actions.keyboard.init({
-                    onattack: function onattack(note) {
-                        actions.soundbank.attackCurrent(note);
-                        actions.sequencer.setNote(note);
-                    },
-                    onrelease: function onrelease(_) {
-                        actions.soundbank.releaseCurrent();
-                        actions.sequencer.setNote(null);
-                    }
-                });
-
+                actions.keyboard.init({ onpress: actions.keyPress });
                 actions.sequencer.init({
                     onselectvoice: actions.soundbank.select,
-                    onattackvoice: actions.sequencerAttackVoice,
+                    onplay: actions.sequencerPlay,
                     onstop: actions.soundbank.stopAll
                 });
-
                 actions.soundbank.init({
                     onselect: actions.sequencer.selection.reset
                 });
             };
         },
 
-        sequencerAttackVoice: function sequencerAttackVoice(_ref) {
+        sequencerPlay: function sequencerPlay(_ref) {
             var note = _ref.note,
                 voice = _ref.voice;
             return function (state, actions) {
-                //let keyboard override what the sequencer plays:
-                if (voice === state.soundbank.selected && state.keyboard.pressed) return;
-                actions.soundbank.attack({ voice: voice, note: note });
+                if (state.keyboard.pressed && voice === state.soundbank.selected) return;
+                actions.soundbank.play({ note: note, voice: voice });
+            };
+        },
+
+        keyPress: function keyPress(note) {
+            return function (state, actions) {
+                var voice = state.soundbank.selected;
+                actions.soundbank.play({ note: note, voice: voice });
+                actions.sequencer.attack({ note: note, voice: voice });
             };
         }
     },
@@ -1634,7 +1714,7 @@ exports.default = {
         );
     }
 };
-},{"hyperapp":6,"./css/main.css":7,"./keyboard":8,"./sequencer":9,"./soundbank":10}],2:[function(require,module,exports) {
+},{"hyperapp":7,"./css/main.css":10,"./keyboard":11,"./sequencer":12,"./soundbank":13}],2:[function(require,module,exports) {
 'use strict';
 
 require('./css/base.css');
@@ -1660,7 +1740,7 @@ var _app = (0, _hyperapp.app)(state, actions, view, document.body),
     init = _app.init;
 
 init();
-},{"./css/base.css":3,"hyperapp":6,"./lib/combine-modules":5,"./main":4}],27:[function(require,module,exports) {
+},{"./css/base.css":3,"hyperapp":7,"./lib/combine-modules":5,"./main":4}],30:[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -1689,7 +1769,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62945' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '55976' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
@@ -1830,5 +1910,5 @@ function hmrAccept(bundle, id) {
     return hmrAccept(global.parcelRequire, id);
   });
 }
-},{}]},{},[27,2], null)
+},{}]},{},[30,2], null)
 //# sourceMappingURL=/src.7deb02e7.map

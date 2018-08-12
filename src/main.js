@@ -15,33 +15,27 @@ export default {
 
     actions: {
         init: _ => (_, actions) => {
-            actions.keyboard.init({
-                onattack: note => {
-                    actions.soundbank.attackCurrent(note)
-                    actions.sequencer.setNote(note)        
-                },
-                onrelease: _ => {
-                    actions.soundbank.releaseCurrent()
-                    actions.sequencer.setNote(null)        
-                },
-            })
-
+            actions.keyboard.init({onpress: actions.keyPress})
             actions.sequencer.init({
                 onselectvoice: actions.soundbank.select,
-                onattackvoice: actions.sequencerAttackVoice,
+                onplay: actions.sequencerPlay,
                 onstop: actions.soundbank.stopAll,
             })
-
             actions.soundbank.init({
                 onselect: actions.sequencer.selection.reset
             })
         },
 
-        sequencerAttackVoice: ({note, voice}) => (state, actions) => {
-            //let keyboard override what the sequencer plays:
-            if (voice === state.soundbank.selected && state.keyboard.pressed) return 
-            actions.soundbank.attack({voice, note})
+        sequencerPlay: ({note, voice}) => (state, actions) => {
+            if (state.keyboard.pressed && voice === state.soundbank.selected) return
+            actions.soundbank.play({note, voice})
         },
+
+        keyPress: (note) => (state, actions) => {
+            let voice = state.soundbank.selected
+            actions.soundbank.play({note, voice})
+            actions.sequencer.attack({note, voice})
+        }
     },
 
     view: (state, actions, views) => (

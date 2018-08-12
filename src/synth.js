@@ -47,20 +47,20 @@ export default voice => ({
             voices.set(voice, x)
             return x
         },
-        attack: note => (state, actions) => {
+        play: note => (state, actions) => {
             if (state.current === note) return
             if (note === null) {
-                actions.release()
-                return
+                voices.release(voice)
+            } else {
+                voices.attack(voice, note)
             }
-            voices.attack(voice, note)
             return {current: note}
         },
-        release: _ => state => {
-            if (state.current === null) return 
-            voices.release(voice)
-            return {current: null}
-        },
+        // release: _ => state => {
+        //     if (state.current === null) return 
+        //     voices.release(voice)
+        //     return {current: null}
+        // },
     },
 
     view: (state, actions, views) => {

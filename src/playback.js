@@ -10,7 +10,7 @@ export default _ => ({
     },
 
     actions: {
-        init: ({onplayrow, onstop}) => ({onplayrow, onstop}),
+        init: ({onplayrow, onstop, onstart}) => ({onplayrow, onstop, onstart}),
         setRow: row => ({row}),
         next: _ => (state, actions) => {
             var row = (state.row + 1) % SEQUENCER_LENGTH
@@ -19,6 +19,7 @@ export default _ => ({
         },
         play: _ => (state, actions) => {
             if (state.interval) return
+            state.onstart()
             actions.setRow((state.row || 0) - 1)
             return ({playing: true, interval: setInterval(actions.next, SEQUENCER_INTERVAL)})
         },

@@ -29,20 +29,17 @@ export default {
 
     actions: {
         
-        init: ({onattack, onrelease}) => (state, actions) => {
+        init: ({onpress}) => (state, actions) => {
             addEventListener('keydown', ev => actions.attack(ev.key) && ev.preventDefault(true))
             addEventListener('keyup', ev => actions.release(ev.key) && ev.preventDefault(true))
-            return {
-                onattack: onattack || (_ => {}),
-                onrelease: onrelease || (_ => {}),
-            }
+            return {onpress}
         },
         
         attack: char => state => {
             const note = KEYBOARD_KEYS.indexOf(char)
             if (note === -1) return
             if (char === state.pressed) return
-            if (char !== state.pressed) state.onattack(note)
+            state.onpress(note)
             return {pressed: char}
         },
 
@@ -50,7 +47,7 @@ export default {
             const note = KEYBOARD_KEYS.indexOf(char)
             if (note === -1) return
             if (char !== state.pressed) return
-            if (char === state.pressed) state.onrelease(note)
+            state.onpress(null)
             return {pressed: null}
         }
     },
