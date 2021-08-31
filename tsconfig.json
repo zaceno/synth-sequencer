@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "lib": ["dom", "esnext"],
+        "target": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "strict": true
+    }
+}
