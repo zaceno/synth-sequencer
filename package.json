@@ -1,24 +1,20 @@
 {
-  "name": "zx-synth",
-  "version": "1.0.0",
+  "name": "synth-sequencer",
   "private": true,
-  "description": "",
-  "main": "dist/index.html",
-  "scripts": {
-    "build": "parcel build src/index.html",
-    "dev": "parcel src/index.html --open "
-  },
-  "author": "Zacharias Enochsson",
+  "version": "2.0.0",
+  "type": "module",
   "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
   "devDependencies": {
-    "autoprefixer": "^8.6.5",
-    "babel-core": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-plugin-transform-react-jsx": "^6.24.1",
-    "babel-preset-env": "^1.6.1",
-    "classcat": "^1.0.1",
-    "hyperapp": "^1.2.8",
-    "less": "^3.6.0",
-    "postcss-modules": "^1.1.0"
+    "typescript": "^5.0.2",
+    "vite": "^7.x.x"
+  },
+  "dependencies": {
+    "@fontsource/share-tech-mono": "^5.2.7",
+    "vite-plugin-hyperapp": "^1.4.0"
   }
 }

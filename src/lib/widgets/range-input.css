@@ -1,0 +1,25 @@
+.range-input {
+  appearance: none;
+  height: 1rem;
+  display: block;
+  margin: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.range-input::-webkit-slider-runnable-track {
+  appearance: none;
+  height: 0.3rem;
+  border-radius: 3px;
+  background-color: #e9931d;
+}
+
+.range-input::-webkit-slider-thumb {
+  appearance: none;
+  border: 1px #000 solid;
+  height: 1rem;
+  width: 0.5rem;
+  border-radius: 2px;
+  margin-top: -0.35rem;
+  background: #444;
+}
