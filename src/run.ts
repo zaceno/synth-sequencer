@@ -1,6 +1,7 @@
+import "./style.css"
 import { app, type VNode } from "hyperapp"
-import view from "./main/view.tsx"
-import { init, type State, subscriptions } from "./main/logic.ts"
+import { init, type State, subscriptions } from "./main.tsx"
+import view from "./views/main"
 
 app({
   node: document.getElementById("root")!,

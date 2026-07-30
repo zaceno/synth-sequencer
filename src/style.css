@@ -1,0 +1,148 @@
+@import "@fontsource/share-tech-mono";
+
+body {
+  font-family: "Share Tech Mono", monospace;
+  background: rgb(29, 13, 0);
+}
+.range-input {
+  appearance: none;
+  height: 1rem;
+  display: block;
+  margin: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.range-input::-webkit-slider-runnable-track {
+  appearance: none;
+  height: 0.3rem;
+  border-radius: 3px;
+  background-color: #e9931d;
+}
+
+.range-input::-webkit-slider-thumb {
+  appearance: none;
+  border: 1px #000 solid;
+  height: 1rem;
+  width: 0.5rem;
+  border-radius: 2px;
+  margin-top: -0.35rem;
+  background: #444;
+}
+
+.buttonset {
+  width: 100%;
+  display: flex;
+  gap: 0.1rem;
+}
+
+.buttonset button {
+  flex: 1 1 auto;
+  background-color: #444;
+  color: #fff;
+  border: 2px black solid;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: "Share Tech Mono", monospace;
+  font-weight: normal;
+}
+
+.buttonset button.buttonset--selected {
+  background-color: #e9931d;
+  color: #000;
+}
+
+.keyboard {
+  height: 200px;
+  width: 100%;
+  display: flex;
+  position: relative;
+}
+
+.keyboard__key {
+  position: relative;
+  flex: 1 0 auto;
+  width: 4.67%;
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  height: 99%;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border: 1px #000 solid;
+  border-right: none;
+  cursor: pointer;
+}
+
+.keyboard__key--black {
+  height: 60%;
+  width: 3%;
+  margin-left: -5%;
+  left: 2.5%;
+  z-index: 100;
+  background-color: #444;
+  color: #fff;
+}
+
+.keyboard__key--pressed {
+  background-color: #e9931d;
+}
+
+.keyboard__char {
+  display: block;
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.controlpanel {
+  background: rgb(208, 208, 208);
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  padding: 0.8rem 1.5rem 1.4rem 1.5rem;
+}
+.controlpanel__left,
+.controlpanel__right {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.controlpanel__control {
+  position: relative;
+  padding: 0;
+  padding-top: 1rem;
+}
+
+.controlpanel__label {
+  position: absolute;
+  text-transform: uppercase;
+  top: -1rem;
+  left: 0.2rem;
+  font-weight: normal;
+  font-size: 0.8rem;
+}
+svg.controlpanel__icon {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+svg.controlpanel__envelope {
+  fill: none;
+  stroke: #e9931d;
+  stroke-width: 5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  background: #444;
+  width: 140px;
+  height: 28px;
+  border: 2px black solid;
+}

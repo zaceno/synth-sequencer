@@ -1,4 +1,3 @@
-import "./buttonset.css"
 import type { Action, ClassProp } from "hyperapp"
 export default <S, O extends readonly string[]>({
   options,

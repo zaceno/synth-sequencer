@@ -1,4 +1,3 @@
-import "./range-input.css"
 import type { ClassProp, Action } from "hyperapp"
 
 export default <S,>({
