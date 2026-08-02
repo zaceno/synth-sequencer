@@ -1,6 +1,6 @@
 import "./style.css"
 import { app, type VNode } from "hyperapp"
-import { init, type State, subscriptions } from "./main.tsx"
+import { init, type State, subscriptions } from "./main.ts"
 import view from "./views/main"
 
 app({
